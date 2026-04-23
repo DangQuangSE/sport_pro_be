@@ -1,5 +1,6 @@
 package com.sport_pro_be.common;
 
+import com.sport_pro_be.constant.ApiExceptionConstant;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST.value(), "Invalid request data");
+        Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST.value(), ApiExceptionConstant.INVALID_REQUEST_DATA);
 
         Map<String, String> fieldErrors = new HashMap<>();
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
@@ -44,7 +45,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleUnhandledException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(errorBody(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An internal server error occurred"));
+                .body(errorBody(HttpStatus.INTERNAL_SERVER_ERROR.value(), ApiExceptionConstant.INTERNAL_SERVER_ERROR));
     }
 
     private Map<String, Object> errorBody(int status, String message) {
