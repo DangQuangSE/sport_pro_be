@@ -24,7 +24,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST.value(), "Dữ liệu request không hợp lệ");
+        Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST.value(), "Invalid request data");
 
         Map<String, String> fieldErrors = new HashMap<>();
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
@@ -44,7 +44,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleUnhandledException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(errorBody(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Đã có lỗi hệ thống xảy ra"));
+                .body(errorBody(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An internal server error occurred"));
     }
 
     private Map<String, Object> errorBody(int status, String message) {

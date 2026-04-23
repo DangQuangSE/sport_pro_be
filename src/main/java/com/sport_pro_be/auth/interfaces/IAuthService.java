@@ -1,0 +1,18 @@
+package com.sport_pro_be.auth.interfaces;
+
+import com.sport_pro_be.auth.dto.ApiMessageResponse;
+import com.sport_pro_be.auth.dto.LoginRequest;
+import com.sport_pro_be.auth.dto.LoginSuccessResponse;
+import com.sport_pro_be.auth.dto.OtpVerifyRequest;
+import com.sport_pro_be.auth.dto.RegisterRequest;
+
+public interface IAuthService {
+
+    ApiMessageResponse register(RegisterRequest request);
+
+    LoginSuccessResponse login(LoginRequest request);
+
+    ApiMessageResponse verifyOtp(OtpVerifyRequest request);
+
+    ApiMessageResponse resendOtp(String email);
+}

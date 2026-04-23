@@ -34,11 +34,17 @@ public class EmailOtp {
     @Column(nullable = false)
     private boolean used;
 
+    @Column(nullable = false)
+    private Integer attemptCount = 0;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     void onCreate() {
         this.createdAt = LocalDateTime.now();
+        if (this.attemptCount == null) {
+            this.attemptCount = 0;
+        }
     }
 }

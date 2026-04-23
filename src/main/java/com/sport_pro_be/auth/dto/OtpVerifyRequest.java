@@ -6,6 +6,6 @@ import jakarta.validation.constraints.Pattern;
 
 public record OtpVerifyRequest(
         @NotBlank @Email String email,
-        @NotBlank @Pattern(regexp = "^\\d{6}$", message = "OTP phải có đúng 6 chữ số") String otp
+        @NotBlank @Pattern(regexp = "^\\d{6}$", message = "OTP must be exactly 6 digits") String otp
 ) {
 }

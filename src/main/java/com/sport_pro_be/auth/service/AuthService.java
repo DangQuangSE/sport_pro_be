@@ -7,6 +7,9 @@ import com.sport_pro_be.auth.dto.LoginRequest;
 import com.sport_pro_be.auth.dto.LoginSuccessResponse;
 import com.sport_pro_be.auth.dto.OtpVerifyRequest;
 import com.sport_pro_be.auth.dto.RegisterRequest;
+import com.sport_pro_be.auth.interfaces.IAuthService;
+import com.sport_pro_be.auth.interfaces.IEmailService;
+import com.sport_pro_be.auth.interfaces.IJwtService;
 import com.sport_pro_be.auth.repository.EmailOtpRepository;
 import com.sport_pro_be.auth.repository.UserRepository;
 import com.sport_pro_be.config.AuthProperties;
@@ -20,6 +23,17 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Locale;
 
+import static com.sport_pro_be.auth.constant.AuthConstant.ACCOUNT_ALREADY_VERIFIED;
+import static com.sport_pro_be.auth.constant.AuthConstant.ACCOUNT_NOT_FOUND;
+import static com.sport_pro_be.auth.constant.AuthConstant.EMAIL_EXIST;
+import static com.sport_pro_be.auth.constant.AuthConstant.EMAIL_NOT_VERIFIED;
+import static com.sport_pro_be.auth.constant.AuthConstant.INVALID_CREDENTIALS;
+import static com.sport_pro_be.auth.constant.AuthConstant.INVALID_OTP;
+import static com.sport_pro_be.auth.constant.AuthConstant.OTP_EXPIRED;
+import static com.sport_pro_be.auth.constant.AuthConstant.OTP_INCORRECT;
+import static com.sport_pro_be.auth.constant.AuthConstant.OTP_LOCKED_TOO_MANY_ATTEMPTS;
+import static com.sport_pro_be.auth.constant.AuthConstant.OTP_MAX_ATTEMPTS;
+import static com.sport_pro_be.auth.constant.AuthConstant.OTP_REQUEST_TOO_FREQUENT;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
@@ -27,22 +41,23 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthService implements IAuthService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final UserRepository userRepository;
     private final EmailOtpRepository emailOtpRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
-    private final JwtService jwtService;
+    private final IEmailService emailService;
+    private final IJwtService jwtService;
     private final AuthProperties authProperties;
 
+    @Override
     @Transactional
     public ApiMessageResponse register(RegisterRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
         if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-            throw new ResponseStatusException(CONFLICT, "Email đã tồn tại");
+            throw new ResponseStatusException(CONFLICT, EMAIL_EXIST);
         }
 
         User user = new User();
@@ -51,54 +66,62 @@ public class AuthService {
         user.setEmailVerified(false);
         userRepository.save(user);
 
-        return new ApiMessageResponse("Đăng ký thành công");
+        issueOtpForEmail(normalizedEmail, LocalDateTime.now());
+        return new ApiMessageResponse("Registration successful. OTP has been sent to your email");
     }
 
+    @Override
     @Transactional
-    public ApiMessageResponse login(LoginRequest request) {
+    public LoginSuccessResponse login(LoginRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
-                .orElseThrow(() -> new ResponseStatusException(UNAUTHORIZED, "Email hoặc mật khẩu không đúng"));
+                .orElseThrow(() -> new ResponseStatusException(UNAUTHORIZED, INVALID_CREDENTIALS));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new ResponseStatusException(UNAUTHORIZED, "Email hoặc mật khẩu không đúng");
+            throw new ResponseStatusException(UNAUTHORIZED, INVALID_CREDENTIALS);
         }
 
-        LocalDateTime now = LocalDateTime.now();
-        emailOtpRepository.findTopByEmailIgnoreCaseOrderByCreatedAtDesc(normalizedEmail)
-                .ifPresent(lastOtp -> {
-                    LocalDateTime nextAllowed = lastOtp.getCreatedAt().plusSeconds(authProperties.getOtpResendCooldownSeconds());
-                    if (nextAllowed.isAfter(now)) {
-                        throw new ResponseStatusException(TOO_MANY_REQUESTS,
-                                "Bạn đang yêu cầu OTP quá nhanh, vui lòng thử lại sau vài giây");
-                    }
-                });
+        if (!user.isEmailVerified()) {
+            throw new ResponseStatusException(BAD_REQUEST, EMAIL_NOT_VERIFIED);
+        }
 
-        String otpCode = generateOtpCode();
-        EmailOtp emailOtp = new EmailOtp();
-        emailOtp.setEmail(normalizedEmail);
-        emailOtp.setOtpCode(otpCode);
-        emailOtp.setUsed(false);
-        emailOtp.setExpiresAt(now.plusMinutes(authProperties.getOtpExpirationMinutes()));
-        emailOtpRepository.save(emailOtp);
-
-        emailService.sendOtpEmail(normalizedEmail, otpCode, authProperties.getOtpExpirationMinutes());
-        return new ApiMessageResponse("OTP đã được gửi vào email của bạn");
+        String token = jwtService.generateAccessToken(user);
+        return new LoginSuccessResponse("Bearer", token, jwtService.getExpirationSeconds(), user.getEmail());
     }
 
+    @Override
     @Transactional
-    public LoginSuccessResponse verifyOtp(OtpVerifyRequest request) {
+    public ApiMessageResponse verifyOtp(OtpVerifyRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
-        EmailOtp otp = emailOtpRepository
-                .findTopByEmailIgnoreCaseAndOtpCodeAndUsedFalseOrderByCreatedAtDesc(normalizedEmail, request.otp())
-                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, "OTP không hợp lệ"));
+        EmailOtp otp = emailOtpRepository.findTopByEmailIgnoreCaseOrderByCreatedAtDesc(normalizedEmail)
+                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, INVALID_OTP));
+
+        if (otp.isUsed()) {
+            throw new ResponseStatusException(BAD_REQUEST, INVALID_OTP);
+        }
 
         if (otp.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new ResponseStatusException(BAD_REQUEST, "OTP đã hết hạn");
+            otp.setUsed(true);
+            emailOtpRepository.save(otp);
+            throw new ResponseStatusException(BAD_REQUEST, OTP_EXPIRED);
+        }
+
+        if (!otp.getOtpCode().equals(request.otp())) {
+            int currentAttemptCount = otp.getAttemptCount() == null ? 0 : otp.getAttemptCount();
+            int newAttemptCount = currentAttemptCount + 1;
+            otp.setAttemptCount(newAttemptCount);
+            if (newAttemptCount >= OTP_MAX_ATTEMPTS) {
+                otp.setUsed(true);
+                emailOtpRepository.save(otp);
+                throw new ResponseStatusException(BAD_REQUEST, OTP_LOCKED_TOO_MANY_ATTEMPTS);
+            }
+
+            emailOtpRepository.save(otp);
+            throw new ResponseStatusException(BAD_REQUEST, OTP_INCORRECT);
         }
 
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
-                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, "Không tìm thấy tài khoản"));
+                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, ACCOUNT_NOT_FOUND));
 
         otp.setUsed(true);
         emailOtpRepository.save(otp);
@@ -108,8 +131,47 @@ public class AuthService {
             userRepository.save(user);
         }
 
-        String token = jwtService.generateAccessToken(user);
-        return new LoginSuccessResponse("Bearer", token, jwtService.getExpirationSeconds(), user.getEmail());
+        return new ApiMessageResponse("Email verified successfully. You can now login");
+    }
+
+    @Override
+    @Transactional
+    public ApiMessageResponse resendOtp(String email) {
+        String normalizedEmail = normalizeEmail(email);
+
+        User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
+                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, ACCOUNT_NOT_FOUND));
+
+        if (user.isEmailVerified()) {
+            throw new ResponseStatusException(CONFLICT, ACCOUNT_ALREADY_VERIFIED);
+        }
+
+        issueOtpForEmail(normalizedEmail, LocalDateTime.now());
+        return new ApiMessageResponse("OTP has been resent to your email");
+    }
+
+    private void issueOtpForEmail(String normalizedEmail, LocalDateTime now) {
+        emailOtpRepository.findTopByEmailIgnoreCaseOrderByCreatedAtDesc(normalizedEmail)
+                .ifPresent(lastOtp -> {
+                    LocalDateTime nextAllowed = lastOtp.getCreatedAt().plusSeconds(authProperties.getOtpResendCooldownSeconds());
+                    if (nextAllowed.isAfter(now)) {
+                        throw new ResponseStatusException(TOO_MANY_REQUESTS,
+                                OTP_REQUEST_TOO_FREQUENT);
+                    }
+                });
+
+        emailOtpRepository.invalidateAllActiveByEmail(normalizedEmail);
+
+        String otpCode = generateOtpCode();
+        EmailOtp emailOtp = new EmailOtp();
+        emailOtp.setEmail(normalizedEmail);
+        emailOtp.setOtpCode(otpCode);
+        emailOtp.setUsed(false);
+        emailOtp.setAttemptCount(0);
+        emailOtp.setExpiresAt(now.plusMinutes(authProperties.getOtpExpirationMinutes()));
+        emailOtpRepository.save(emailOtp);
+
+        emailService.sendOtpEmail(normalizedEmail, otpCode, authProperties.getOtpExpirationMinutes());
     }
 
     private String normalizeEmail(String email) {
