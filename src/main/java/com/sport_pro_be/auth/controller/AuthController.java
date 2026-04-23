@@ -23,6 +23,11 @@ public class AuthController {
 
     private final IAuthService authService;
 
+    @PostMapping("/register/request-otp")
+    public ApiMessageResponse requestRegistrationOtp(@Valid @RequestBody ResendOtpRequest request) {
+        return authService.requestRegistrationOtp(request.email());
+    }
+
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiMessageResponse register(@Valid @RequestBody RegisterRequest request) {

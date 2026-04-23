@@ -8,6 +8,8 @@ import com.sport_pro_be.auth.dto.RegisterRequest;
 
 public interface IAuthService {
 
+    ApiMessageResponse requestRegistrationOtp(String email);
+
     ApiMessageResponse register(RegisterRequest request);
 
     LoginSuccessResponse login(LoginRequest request);

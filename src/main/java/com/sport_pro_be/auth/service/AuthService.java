@@ -24,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.Locale;
 
 import static com.sport_pro_be.auth.constant.AuthConstant.ACCOUNT_ALREADY_VERIFIED;
-import static com.sport_pro_be.auth.constant.AuthConstant.ACCOUNT_NOT_FOUND;
 import static com.sport_pro_be.auth.constant.AuthConstant.EMAIL_EXIST;
 import static com.sport_pro_be.auth.constant.AuthConstant.EMAIL_NOT_VERIFIED;
 import static com.sport_pro_be.auth.constant.AuthConstant.INVALID_CREDENTIALS;
@@ -34,6 +33,11 @@ import static com.sport_pro_be.auth.constant.AuthConstant.OTP_INCORRECT;
 import static com.sport_pro_be.auth.constant.AuthConstant.OTP_LOCKED_TOO_MANY_ATTEMPTS;
 import static com.sport_pro_be.auth.constant.AuthConstant.OTP_MAX_ATTEMPTS;
 import static com.sport_pro_be.auth.constant.AuthConstant.OTP_REQUEST_TOO_FREQUENT;
+import static com.sport_pro_be.auth.constant.AuthConstant.OTP_RESENT_SUCCESS;
+import static com.sport_pro_be.auth.constant.AuthConstant.OTP_SENT_SUCCESS;
+import static com.sport_pro_be.auth.constant.AuthConstant.OTP_VERIFICATION_REQUIRED;
+import static com.sport_pro_be.auth.constant.AuthConstant.OTP_VERIFIED_FOR_REGISTRATION;
+import static com.sport_pro_be.auth.constant.AuthConstant.REGISTRATION_SUCCESS;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
@@ -54,20 +58,41 @@ public class AuthService implements IAuthService {
 
     @Override
     @Transactional
+    public ApiMessageResponse requestRegistrationOtp(String email) {
+        String normalizedEmail = normalizeEmail(email);
+        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
+            throw new ResponseStatusException(CONFLICT, EMAIL_EXIST);
+        }
+
+        issueOtpForEmail(normalizedEmail, LocalDateTime.now());
+        return new ApiMessageResponse(OTP_SENT_SUCCESS);
+    }
+
+    @Override
+    @Transactional
     public ApiMessageResponse register(RegisterRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
         if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw new ResponseStatusException(CONFLICT, EMAIL_EXIST);
         }
 
+        EmailOtp latestOtp = emailOtpRepository.findTopByEmailIgnoreCaseOrderByCreatedAtDesc(normalizedEmail)
+                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, OTP_VERIFICATION_REQUIRED));
+
+        if (!latestOtp.isOtpVerified()) {
+            throw new ResponseStatusException(BAD_REQUEST, OTP_VERIFICATION_REQUIRED);
+        }
+
         User user = new User();
         user.setEmail(normalizedEmail);
         user.setPasswordHash(passwordEncoder.encode(request.password()));
-        user.setEmailVerified(false);
+        user.setEmailVerified(true);
         userRepository.save(user);
 
-        issueOtpForEmail(normalizedEmail, LocalDateTime.now());
-        return new ApiMessageResponse("Registration successful. OTP has been sent to your email");
+        latestOtp.setOtpVerified(false);
+        emailOtpRepository.save(latestOtp);
+
+        return new ApiMessageResponse(REGISTRATION_SUCCESS);
     }
 
     @Override
@@ -120,18 +145,11 @@ public class AuthService implements IAuthService {
             throw new ResponseStatusException(BAD_REQUEST, OTP_INCORRECT);
         }
 
-        User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
-                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, ACCOUNT_NOT_FOUND));
-
         otp.setUsed(true);
+        otp.setOtpVerified(true);
         emailOtpRepository.save(otp);
 
-        if (!user.isEmailVerified()) {
-            user.setEmailVerified(true);
-            userRepository.save(user);
-        }
-
-        return new ApiMessageResponse("Email verified successfully. You can now login");
+        return new ApiMessageResponse(OTP_VERIFIED_FOR_REGISTRATION);
     }
 
     @Override
@@ -139,15 +157,12 @@ public class AuthService implements IAuthService {
     public ApiMessageResponse resendOtp(String email) {
         String normalizedEmail = normalizeEmail(email);
 
-        User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
-                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, ACCOUNT_NOT_FOUND));
-
-        if (user.isEmailVerified()) {
+        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw new ResponseStatusException(CONFLICT, ACCOUNT_ALREADY_VERIFIED);
         }
 
         issueOtpForEmail(normalizedEmail, LocalDateTime.now());
-        return new ApiMessageResponse("OTP has been resent to your email");
+        return new ApiMessageResponse(OTP_RESENT_SUCCESS);
     }
 
     private void issueOtpForEmail(String normalizedEmail, LocalDateTime now) {
@@ -168,6 +183,7 @@ public class AuthService implements IAuthService {
         emailOtp.setOtpCode(otpCode);
         emailOtp.setUsed(false);
         emailOtp.setAttemptCount(0);
+    emailOtp.setOtpVerified(false);
         emailOtp.setExpiresAt(now.plusMinutes(authProperties.getOtpExpirationMinutes()));
         emailOtpRepository.save(emailOtp);
 

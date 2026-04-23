@@ -37,6 +37,9 @@ public class EmailOtp {
     @Column(nullable = false)
     private Integer attemptCount = 0;
 
+    @Column(nullable = false)
+    private boolean otpVerified;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -46,5 +49,6 @@ public class EmailOtp {
         if (this.attemptCount == null) {
             this.attemptCount = 0;
         }
+        this.otpVerified = false;
     }
 }

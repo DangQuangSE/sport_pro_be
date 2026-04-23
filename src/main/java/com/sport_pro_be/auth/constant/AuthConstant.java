@@ -5,8 +5,13 @@ public class AuthConstant {
     }
 
     public static final String EMAIL_EXIST = "Email already exists";
+    public static final String OTP_SENT_SUCCESS = "OTP has been sent to your email";
+    public static final String OTP_RESENT_SUCCESS = "OTP has been resent to your email";
+    public static final String OTP_VERIFIED_FOR_REGISTRATION = "OTP verified successfully. You can now complete registration";
+    public static final String REGISTRATION_SUCCESS = "Registration successful. You can now login";
     public static final String INVALID_CREDENTIALS = "Invalid email or password";
     public static final String EMAIL_NOT_VERIFIED = "Email is not verified. Please verify OTP first";
+    public static final String OTP_VERIFICATION_REQUIRED = "Please verify OTP for this email before registering";
     public static final String INVALID_OTP = "Invalid OTP";
     public static final String OTP_INCORRECT = "OTP code is incorrect";
     public static final String OTP_EXPIRED = "OTP has expired";

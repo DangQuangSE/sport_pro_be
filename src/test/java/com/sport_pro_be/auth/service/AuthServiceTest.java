@@ -2,6 +2,7 @@ package com.sport_pro_be.auth.service;
 
 import com.sport_pro_be.auth.domain.EmailOtp;
 import com.sport_pro_be.auth.domain.User;
+import com.sport_pro_be.auth.dto.RegisterRequest;
 import com.sport_pro_be.auth.dto.OtpVerifyRequest;
 import com.sport_pro_be.auth.interfaces.IEmailService;
 import com.sport_pro_be.auth.interfaces.IJwtService;
@@ -15,18 +16,22 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import static com.sport_pro_be.auth.constant.AuthConstant.OTP_SENT_SUCCESS;
 import static com.sport_pro_be.auth.constant.AuthConstant.OTP_INCORRECT;
 import static com.sport_pro_be.auth.constant.AuthConstant.OTP_LOCKED_TOO_MANY_ATTEMPTS;
+import static com.sport_pro_be.auth.constant.AuthConstant.OTP_VERIFICATION_REQUIRED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,6 +53,9 @@ class AuthServiceTest {
 
     @Mock
     private AuthProperties authProperties;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private AuthService authService;
@@ -91,17 +99,15 @@ class AuthServiceTest {
     }
 
     @Test
-    void resendOtp_whenUserNotVerified_shouldIssueNewOtpAndSendMail() {
+    void requestRegistrationOtp_whenEmailAvailable_shouldIssueOtpAndSendMail() {
         String email = "user@example.com";
-        User user = new User();
-        user.setEmail(email);
-        user.setEmailVerified(false);
 
-        when(userRepository.findByEmailIgnoreCase(email)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmailIgnoreCase(email)).thenReturn(false);
         when(emailOtpRepository.findTopByEmailIgnoreCaseOrderByCreatedAtDesc(email)).thenReturn(Optional.empty());
         when(emailOtpRepository.save(any(EmailOtp.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        authService.resendOtp(email);
+        var response = authService.requestRegistrationOtp(email);
+        assertEquals(OTP_SENT_SUCCESS, response.message());
 
         verify(emailOtpRepository).invalidateAllActiveByEmail(email);
 
@@ -112,10 +118,49 @@ class AuthServiceTest {
         assertEquals(email, savedOtp.getEmail());
         assertEquals(0, savedOtp.getAttemptCount());
         assertFalse(savedOtp.isUsed());
+        assertFalse(savedOtp.isOtpVerified());
         assertNotNull(savedOtp.getOtpCode());
         assertEquals(6, savedOtp.getOtpCode().length());
 
         verify(emailService).sendOtpEmail(email, savedOtp.getOtpCode(), 5L);
+    }
+
+    @Test
+    void register_whenOtpNotVerified_shouldReject() {
+        String email = "user@example.com";
+        EmailOtp latestOtp = buildOtp(email, "123456", 0, true, LocalDateTime.now().plusMinutes(5));
+        latestOtp.setOtpVerified(false);
+
+        when(userRepository.existsByEmailIgnoreCase(email)).thenReturn(false);
+        when(emailOtpRepository.findTopByEmailIgnoreCaseOrderByCreatedAtDesc(email)).thenReturn(Optional.of(latestOtp));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> authService.register(new RegisterRequest(email, "password123")));
+
+        assertEquals(OTP_VERIFICATION_REQUIRED, exception.getReason());
+    }
+
+    @Test
+    void register_whenOtpVerified_shouldCreateUser() {
+        String email = "user@example.com";
+        EmailOtp latestOtp = buildOtp(email, "123456", 0, true, LocalDateTime.now().plusMinutes(5));
+        latestOtp.setOtpVerified(true);
+
+        when(userRepository.existsByEmailIgnoreCase(email)).thenReturn(false);
+        when(emailOtpRepository.findTopByEmailIgnoreCaseOrderByCreatedAtDesc(email)).thenReturn(Optional.of(latestOtp));
+        when(passwordEncoder.encode("password123")).thenReturn("hashed-password");
+
+        authService.register(new RegisterRequest(email, "password123"));
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+        User savedUser = userCaptor.getValue();
+        assertEquals(email, savedUser.getEmail());
+        assertEquals("hashed-password", savedUser.getPasswordHash());
+        assertTrue(savedUser.isEmailVerified());
+
+        verify(emailOtpRepository).save(eq(latestOtp));
+        assertFalse(latestOtp.isOtpVerified());
     }
 
     private EmailOtp buildOtp(String email, String code, Integer attempts, boolean used, LocalDateTime expiresAt) {
