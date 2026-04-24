@@ -27,6 +27,20 @@ public class AuthProperties {
     @Min(0)
     private long otpResendCooldownSeconds = 60;
 
+    @Min(1)
+    private long refreshTokenExpirationDays = 14;
+
+    @NotBlank
+    private String refreshTokenCookieName = "refreshToken";
+
+    private boolean refreshTokenCookieSecure;
+
+    @NotBlank
+    private String refreshTokenCookieSameSite = "Lax";
+
+    @NotBlank
+    private String refreshTokenCookiePath = "/api/auth";
+
     @NotBlank
     private String mailFrom;
 }
