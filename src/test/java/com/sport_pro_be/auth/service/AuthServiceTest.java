@@ -1,12 +1,15 @@
 package com.sport_pro_be.auth.service;
 
 import com.sport_pro_be.auth.domain.EmailOtp;
+import com.sport_pro_be.auth.domain.RefreshToken;
 import com.sport_pro_be.auth.domain.User;
+import com.sport_pro_be.auth.dto.AuthTokenPairResponse;
 import com.sport_pro_be.auth.dto.RegisterRequest;
 import com.sport_pro_be.auth.dto.OtpVerifyRequest;
 import com.sport_pro_be.auth.interfaces.IEmailService;
 import com.sport_pro_be.auth.interfaces.IJwtService;
 import com.sport_pro_be.auth.repository.EmailOtpRepository;
+import com.sport_pro_be.auth.repository.RefreshTokenRepository;
 import com.sport_pro_be.auth.repository.UserRepository;
 import com.sport_pro_be.config.AuthProperties;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +29,7 @@ import static com.sport_pro_be.auth.constant.AuthConstant.OTP_SENT_SUCCESS;
 import static com.sport_pro_be.auth.constant.AuthConstant.OTP_INCORRECT;
 import static com.sport_pro_be.auth.constant.AuthConstant.OTP_LOCKED_TOO_MANY_ATTEMPTS;
 import static com.sport_pro_be.auth.constant.AuthConstant.OTP_VERIFICATION_REQUIRED;
+import static com.sport_pro_be.auth.constant.AuthConstant.REFRESH_TOKEN_REQUIRED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -46,6 +50,9 @@ class AuthServiceTest {
     private EmailOtpRepository emailOtpRepository;
 
     @Mock
+    private RefreshTokenRepository refreshTokenRepository;
+
+    @Mock
     private IEmailService emailService;
 
     @Mock
@@ -64,6 +71,7 @@ class AuthServiceTest {
     void setUp() {
         when(authProperties.getOtpExpirationMinutes()).thenReturn(5L);
         when(authProperties.getOtpResendCooldownSeconds()).thenReturn(0L);
+        when(authProperties.getRefreshTokenExpirationDays()).thenReturn(14L);
     }
 
     @Test
@@ -161,6 +169,58 @@ class AuthServiceTest {
 
         verify(emailOtpRepository).save(eq(latestOtp));
         assertFalse(latestOtp.isOtpVerified());
+    }
+
+    @Test
+    void refreshAccessToken_whenRefreshTokenMissing_shouldFail() {
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> authService.refreshAccessToken(null));
+
+        assertEquals(REFRESH_TOKEN_REQUIRED, exception.getReason());
+    }
+
+    @Test
+    void refreshAccessToken_whenRefreshTokenValid_shouldRotateAndReturnTokenPair() {
+        User user = new User();
+        user.setId(10L);
+        user.setEmail("user@example.com");
+
+        RefreshToken current = new RefreshToken();
+        current.setUser(user);
+        current.setRevoked(false);
+        current.setExpiresAt(LocalDateTime.now().plusDays(1));
+
+        String rawRefreshToken = "raw-refresh-token";
+        when(refreshTokenRepository.findByTokenHash(any())).thenReturn(Optional.of(current));
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(jwtService.generateAccessToken(user)).thenReturn("access-token");
+        when(jwtService.getExpirationSeconds()).thenReturn(900L);
+
+        AuthTokenPairResponse result = authService.refreshAccessToken(rawRefreshToken);
+
+        assertEquals("Bearer", result.tokenType());
+        assertEquals("access-token", result.accessToken());
+        assertEquals(900L, result.expiresInSeconds());
+        assertEquals("user@example.com", result.email());
+        assertNotNull(result.refreshToken());
+        assertTrue(current.isRevoked());
+        verify(refreshTokenRepository, org.mockito.Mockito.times(2)).save(any(RefreshToken.class));
+    }
+
+    @Test
+    void logout_whenTokenFound_shouldRevokeToken() {
+        User user = new User();
+        user.setId(11L);
+        RefreshToken existing = new RefreshToken();
+        existing.setUser(user);
+        existing.setRevoked(false);
+
+        when(refreshTokenRepository.findByTokenHash(any())).thenReturn(Optional.of(existing));
+
+        authService.logout("refresh-token");
+
+        assertTrue(existing.isRevoked());
+        verify(refreshTokenRepository).save(existing);
     }
 
     private EmailOtp buildOtp(String email, String code, Integer attempts, boolean used, LocalDateTime expiresAt) {
