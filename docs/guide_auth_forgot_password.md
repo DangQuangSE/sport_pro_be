@@ -1,328 +1,220 @@
-# Hướng dẫn code tay tính năng Forgot Password cho `sport_pro_be`
+# Hướng dẫn triển khai `forgot-password` (bản cải thiện kiến trúc) cho `sport_pro_be`
 
-## 1) Mô tả bài toán
+## 1) Mục tiêu thay đổi
 
-### Mục tiêu business
+Tài liệu này cập nhật theo định hướng mới trước khi code chính thức:
 
-- Cho phép người dùng đặt lại mật khẩu khi quên mà không cần liên hệ thủ công.
-- Giảm rủi ro takeover tài khoản bằng cơ chế token/OTP có hạn dùng, giới hạn thử sai, và chống spam request.
-- Đảm bảo UX mượt: flow rõ ràng, thông điệp nhất quán, không lộ thông tin tài khoản tồn tại hay không.
-
-### In-scope
-
-- API yêu cầu quên mật khẩu (`request reset`).
-- API xác thực mã reset + đổi mật khẩu (`confirm reset`).
-- Cơ chế gửi email reset bất đồng bộ.
-- Cơ chế hết hạn/thu hồi mã cũ và rate-limit cơ bản theo email.
-- Thu hồi toàn bộ refresh token/session sau khi đổi mật khẩu thành công.
-
-### Out-scope
-
-- Không đổi cơ chế login hiện tại ngoài phần invalidate session sau reset.
-- Không thêm MFA bắt buộc trong scope đầu tiên.
-- Không thêm giao diện frontend (chỉ backend APIs + contract).
+- **Không tạo thêm entity `PasswordResetOtp` riêng** để tránh tăng độ phức tạp.
+- **Tái sử dụng entity OTP hiện tại** bằng cách đổi tên `EmailOtp` thành một entity trung tính hơn.
+- **Phân loại OTP bằng enum** để dùng chung cho nhiều luồng (register, forgot-password, ...).
+- **Tách module forgot-password** (controller/interface/repository/service riêng), không dồn logic vào các class authentication hiện có.
 
 ---
 
-## 2) Thiết kế kỹ thuật (High-level)
+## 2) Thiết kế mới (High-level)
 
-### Luồng nghiệp vụ đề xuất
+### 2.1 Entity OTP dùng chung
 
-1. User nhập email tại “Forgot Password”.
-2. Backend luôn trả về message trung tính (để tránh user enumeration), nhưng chỉ tạo mã reset nếu email tồn tại.
-3. Tạo reset OTP/token mới, vô hiệu hóa mã cũ chưa dùng của email đó.
-4. Gửi email reset async.
-5. User gửi `email + resetCode + newPassword` để xác nhận đổi mật khẩu.
-6. Backend kiểm tra: mã mới nhất, chưa dùng, chưa hết hạn, chưa vượt số lần sai.
-7. Hợp lệ -> cập nhật password hash, đánh dấu mã đã dùng, revoke refresh tokens/session.
+Đổi tên:
 
-### Thành phần liên quan
+- `EmailOtp` -> `OtpVerification` (hoặc tên trung tính tương đương theo convention của project).
 
-- `auth/controller/AuthController`
-  - `POST /api/auth/forgot-password/request`
-  - `POST /api/auth/forgot-password/confirm`
-- `auth/service/AuthService` hoặc tách `PasswordResetService` (khuyến nghị tách để SRP).
-- `auth/domain`
-  - Tạo entity mới `PasswordResetOtp` (hoặc tái sử dụng `EmailOtp` nhưng thêm purpose enum).
-- `auth/repository`
-  - `PasswordResetOtpRepository` với query lấy OTP mới nhất + invalidate mã cũ.
-- `auth/service/EmailService`
-  - Gửi mail template reset password.
-- `common/ApiExceptionHandler`
-  - Dùng chung chuẩn lỗi hiện có.
+Thêm enum phân loại:
 
-### Data model đề xuất
+- `OtpType.REGISTER`
+- `OtpType.FORGOT_PASSWORD`
+- (mở rộng sau: `CHANGE_EMAIL`, `MFA_LOGIN`, ...)
 
-`password_reset_otps`
+Các field chính cần có trong entity OTP trung tính:
 
 - `id`
 - `email`
-- `resetCode`
+- `otpCode`
+- `otpType` (enum)
 - `used`
 - `attemptCount`
 - `expiresAt`
 - `createdAt`
+- `updatedAt`
 
-Index gợi ý:
+> Lưu ý: mọi query/validate OTP bắt buộc filter theo **`email + otpType`** để tránh lẫn OTP giữa register và forgot-password.
 
-- `(email, created_at desc)`
+### 2.2 Tách module forgot-password khỏi authentication chung
+
+Tạo nhóm class riêng (có thể nằm dưới package `auth`, nhưng tách theo namespace rõ ràng):
+
+- `auth/forgotpassword/controller/ForgotPasswordController`
+- `auth/forgotpassword/interfaces/ForgotPasswordService`
+- `auth/forgotpassword/service/ForgotPasswordServiceImpl`
+- `auth/forgotpassword/repository/ForgotPasswordOtpQueryRepository` (nếu cần query chuyên biệt)
+- `auth/forgotpassword/dto/*`
+
+Các thành phần dùng lại:
+
+- `OtpVerificationRepository` (repository chính cho OTP dùng chung)
+- `UserRepository`
+- `EmailService`
+- `RefreshTokenService` (hoặc service revoke session tương đương)
+
+---
+
+## 3) Luồng nghiệp vụ forgot-password (yêu cầu mới)
+
+###+ Bước 1: Request forgot-password (nhập email)
+
+1. Client gửi email.
+2. Backend chuẩn hóa email (trim/lowercase).
+3. Kiểm tra email có tồn tại trong database user hay không.
+4. Nếu **có tồn tại**:
+   - kiểm tra resend cooldown giống luồng register;
+   - sử dụng Transaction (ví dụ `@Transactional`) để đảm bảo toàn vẹn dữ liệu:
+     - vô hiệu các OTP active cũ của `otpType = FORGOT_PASSWORD`;
+     - tạo OTP mới với loại `FORGOT_PASSWORD`;
+   - gửi email OTP bất đồng bộ.
+5. Nếu **không tồn tại**:
+   - không tạo OTP;
+   - vẫn trả về response trung tính.
+
+Response khuyến nghị (trung tính chống enumerate):
+
+- `If your email exists in our system, an OTP has been sent.`
+
+###+ Bước 2: Verify OTP chủ sở hữu email
+
+1. Client gửi `email + otpCode`.
+2. Backend lấy OTP mới nhất theo `email + FORGOT_PASSWORD`.
+3. Validate:
+   - chưa dùng;
+   - chưa hết hạn;
+   - chưa vượt quá số lần nhập sai;
+   - mã OTP khớp.
+4. Nếu đúng OTP:
+   - đánh dấu OTP verified/used theo thiết kế đang áp dụng;
+   - phát hành token phiên ngắn hạn cho bước đổi mật khẩu (ví dụ `forgotPasswordToken` dạng JWT). **Lưu ý quan trọng**: Token này phải chứa `email` hoặc `userId` bên trong payload và có thời gian sống ngắn (ví dụ 5-15 phút).
+
+###+ Bước 3: Đặt mật khẩu mới
+
+1. Chỉ cho phép gọi khi có `forgotPasswordToken` hợp lệ. **Backend tuyệt đối phải giải mã token này để lấy `email`/`userId`, không được dùng `email` do client truyền lên ở body** để tránh lỗ hổng bảo mật.
+2. Validate `newPassword` theo policy hiện hành.
+3. Sử dụng Transaction (ví dụ `@Transactional`) để đảm bảo tính toàn vẹn:
+   - Update password hash cho user.
+   - Revoke toàn bộ refresh token/session cũ của user.
+4. Trả về thông báo thành công.
+
+---
+
+## 4) Anti-spam / Anti-attack bắt buộc
+
+- Áp dụng resend OTP limit **giống register** (cooldown theo email).
+- Giới hạn số lần nhập OTP sai (`maxAttempts`).
+- OTP cũ phải bị vô hiệu khi phát OTP mới cùng `email + FORGOT_PASSWORD`.
+- Không log plain OTP hoặc password.
+- Response message không phân biệt email có tồn tại hay không ở bước request.
+
+---
+
+## 5) API contract đề xuất
+
+### 5.1 Request OTP for forgot-password
+
+- `POST /api/forgot-password/request-otp`
+
+Request:
+
 - `email`
 
----
+Response:
 
-## 3) Thư viện đề xuất
+- `ApiMessageResponse` trung tính.
 
-### Bắt buộc
+### 5.2 Verify OTP for forgot-password
 
-- Không cần thêm third-party library mới.
-- Dùng:
-  - Spring Boot Validation
-  - Spring Data JPA
-  - Spring Mail
-  - Spring Async (`@Async`) đã có trong dự án
+- `POST /api/forgot-password/verify-otp`
 
-### Tùy chọn nâng cao (phase sau)
+Request:
 
-- Bucket4j/Redis rate limit cho endpoint forgot password.
-- Audit logging framework để giám sát security events.
+- `email`
+- `otpCode`
 
----
+Response:
 
-## 4) Cấu hình cần thêm
+- thành công: message + token/flag cho phép reset password.
 
-### `src/main/resources/config/auth.properties`
+### 5.3 Reset password
 
-Đề xuất thêm:
+- `POST /api/forgot-password/reset`
 
-- `app.auth.password-reset-otp-expiration-minutes=10`
-- `app.auth.password-reset-resend-cooldown-seconds=60`
-- `app.auth.password-reset-max-attempts=5`
-- `app.auth.password-reset-email-subject=[Sport Pro] Password reset code`
+Request:
 
-### `AuthProperties` (`config/AuthProperties.java`)
+- `newPassword`
+- `forgotPasswordToken` (Bắt buộc có, backend tự giải mã token để lấy `email`/`userId` bên trong)
 
-- Bổ sung fields tương ứng và `@Min` validation.
+Response:
 
-### Dev/Prod gợi ý
-
-- Dev: expiration 10–15 phút, cooldown 30–60 giây.
-- Prod: expiration 10 phút, cooldown 60–120 giây, attempt max 5.
-
----
-
-## 5) Kế hoạch triển khai code tay (step-by-step)
-
-### Bước 1: Chuẩn hóa API contract + DTO
-
-**Files**
-
-- Tạo `auth/dto/ForgotPasswordRequest.java` (email)
-- Tạo `auth/dto/ForgotPasswordConfirmRequest.java` (email, code, newPassword)
-
-**Done criteria**
-
-- DTO có validation đầy đủ (`@Email`, `@NotBlank`, `@Size`, `@Pattern`).
-
-### Bước 2: Tạo entity + repository cho reset OTP
-
-**Files**
-
-- Tạo `auth/domain/PasswordResetOtp.java`
-- Tạo `auth/repository/PasswordResetOtpRepository.java`
-
-**Done criteria**
-
-- Có method:
-  - tìm OTP mới nhất theo email
-  - invalidate mã cũ chưa dùng
-
-### Bước 3: Implement service request reset
-
-**Files**
-
-- Sửa/tạo service trong `auth/service/`
-
-**Logic**
-
-- Normalize email.
-- Không lộ email tồn tại/không tồn tại.
-- Nếu user tồn tại: check cooldown, invalidate old codes, tạo code mới, gửi mail async.
-- Nếu không tồn tại: trả message trung tính giống hệt.
-
-**Done criteria**
-
-- Endpoint luôn trả message chung, không phân biệt account exists.
-
-### Bước 4: Implement service confirm reset
-
-**Logic**
-
-- Query OTP mới nhất theo email.
-- Validate used/expired/code/attemptCount.
-- Sai code -> tăng `attemptCount`, quá ngưỡng thì khóa OTP.
-- Đúng code -> update password hash user, mark used OTP, revoke refresh tokens/session.
-
-**Done criteria**
-
-- Reset thành công thì login cũ không còn hiệu lực (nếu đã có refresh token).
-
-### Bước 5: Expose controller endpoints
-
-**Files**
-
-- `auth/controller/AuthController.java`
-
-**Done criteria**
-
-- Có 2 API mới với response chuẩn `ApiMessageResponse`.
-
-### Bước 6: Constant + exception message
-
-**Files**
-
-- `auth/constant/AuthConstant.java`
-
-**Done criteria**
-
-- Không hardcode message trong service.
-
-### Bước 7: Testing
-
-**Files**
-
-- `src/test/java/.../auth/service/...Test.java`
-
-**Done criteria**
-
-- Unit test pass cho luồng happy + edge + negative.
-
----
-
-## 6) Pseudo-code / Code skeleton (không full code)
-
-### DTO skeleton
-
-```java
-public record ForgotPasswordRequest(
-    @NotBlank @Email String email
-) {}
-
-public record ForgotPasswordConfirmRequest(
-    @NotBlank @Email String email,
-    @NotBlank @Pattern(regexp = "^\\d{6}$") String resetCode,
-    @NotBlank @Size(min = 8, max = 72) String newPassword
-) {}
-```
-
-### Service skeleton
-
-```java
-ApiMessageResponse requestForgotPassword(ForgotPasswordRequest request) {
-  String email = normalize(request.email());
-  Optional<User> userOpt = userRepository.findByEmailIgnoreCase(email);
-
-  if (userOpt.isEmpty()) {
-    return genericMessage(); // không lộ thông tin
-  }
-
-  validateCooldown(email);
-  passwordResetOtpRepository.invalidateAllActiveByEmail(email);
-
-  String code = generateOtp();
-  saveResetOtp(email, code, expiresAt, attempt=0, used=false);
-  emailService.sendPasswordResetEmail(email, code, expirationMinutes);
-
-  return genericMessage();
-}
-
-ApiMessageResponse confirmForgotPassword(ForgotPasswordConfirmRequest request) {
-  String email = normalize(request.email());
-  PasswordResetOtp latest = findLatestOrThrow(email);
-
-  validateNotUsedAndNotExpired(latest);
-
-  if (!latest.code.equals(request.resetCode())) {
-    increaseAttemptOrLock(latest);
-    throw invalidCodeException();
-  }
-
-  User user = findUserOrThrow(email);
-  user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
-  markOtpUsed(latest);
-  refreshTokenService.revokeAllByUser(user.getId());
-
-  return successMessage();
-}
-```
-
----
-
-## 7) Exception handling & validation
-
-### Validation rules
-
-- Email: `@Email`, `@NotBlank`
-- Reset code: đúng format (6 chữ số)
-- New password: 8–72 ký tự
-
-### Lỗi và HTTP status gợi ý
-
-- `400 Bad Request`
-  - Invalid/expired/used reset code
-  - Password không hợp lệ
-- `429 Too Many Requests`
-  - Request reset quá nhanh (cooldown)
-- `409 Conflict` (tùy chọn)
-  - Reset code bị khóa vì sai quá nhiều lần
-
-### Message gợi ý (English)
-
-- `If your email exists in our system, a reset code has been sent.`
-- `Reset code is invalid.`
-- `Reset code has expired.`
-- `Reset code is locked due to too many incorrect attempts.`
 - `Password has been reset successfully.`
 
 ---
 
-## 8) Checklist tự test
+## 6) Cấu hình đề xuất (reuse + bổ sung)
 
-### Happy path
+Trong `auth.properties` (hoặc nhóm config OTP dùng chung):
 
-- Email tồn tại -> nhận mail reset.
-- Nhập đúng code + password mới -> đổi mật khẩu thành công.
-- Login bằng mật khẩu mới thành công.
+- `app.auth.otp.expiration-minutes=10`
+- `app.auth.otp.resend-cooldown-seconds=60`
+- `app.auth.otp.max-attempts=5`
+- `app.auth.forgot-password.token-expiration-minutes=15`
+- `app.auth.forgot-password.email-subject=[Sport Pro] Forgot password OTP`
 
-### Edge cases
-
-- Request reset nhiều lần trong cooldown.
-- OTP cũ bị invalid khi request OTP mới.
-- OTP hết hạn.
-
-### Negative cases
-
-- Email không tồn tại vẫn trả message trung tính.
-- Sai code liên tục -> khóa OTP.
-- Dùng lại OTP đã used -> bị từ chối.
+Nếu project đang dùng config tách theo từng luồng, có thể giữ key cũ nhưng nên chuẩn hóa naming để dùng chung OTP engine.
 
 ---
 
-## 9) Checklist review trước khi commit
+## 7) Kế hoạch code tay (đã chỉnh theo yêu cầu)
 
-- [ ] Build Maven pass.
-- [ ] Unit tests cho forgot password pass.
-- [ ] Không hardcode message, dùng constants.
-- [ ] Không log reset code/password.
-- [ ] Transaction không giữ lâu phần gửi email (đã async).
-- [ ] API không lộ email tồn tại hay không.
-- [ ] Reset thành công có revoke session/refresh token.
+### Bước 1: Refactor entity OTP
+
+- Đổi tên `EmailOtp` sang tên trung tính (`OtpVerification`).
+- Thêm enum `OtpType` và field `otpType`.
+- Update migration/schema/index theo `email + otp_type + created_at`.
+
+### Bước 2: Cập nhật repository OTP dùng chung
+
+- Query OTP mới nhất theo `email + otpType`.
+- Invalidate active OTP theo `email + otpType`.
+- Query cooldown theo `email + otpType`.
+
+### Bước 3: Tạo module forgot-password riêng
+
+- Tạo controller/service/interface/repository/dto cho forgot-password.
+- Không nhồi thêm vào `AuthController`/`AuthService` hiện tại.
+
+### Bước 4: Implement logic 3 bước
+
+- request OTP -> verify OTP -> reset password.
+- Revoke session sau khi đổi mật khẩu thành công.
+
+### Bước 5: Test
+
+- Happy path: email tồn tại -> verify OTP -> reset pass thành công.
+- Edge: resend quá nhanh, OTP hết hạn, OTP cũ bị invalid khi request mới.
+- Negative: email không tồn tại, nhập sai OTP nhiều lần, dùng OTP đã used.
 
 ---
 
-## 10) Follow-up nâng cấp
+## 8) Checklist review trước khi commit
 
-- Thêm CAPTCHA cho endpoint request reset.
-- Thêm rate-limit theo IP + email (Redis).
-- Thêm audit event: request reset, confirm reset, failed attempts.
-- Template email chuyên nghiệp + đa ngôn ngữ.
-- Cơ chế reset link (signed token) song song OTP (tuỳ UX sản phẩm).
+- [ ] Không còn tạo entity `PasswordResetOtp` riêng.
+- [ ] `EmailOtp` đã được đổi tên thành entity OTP trung tính.
+- [ ] Có enum `OtpType` để phân biệt luồng OTP.
+- [ ] Luồng forgot-password đã tách module riêng (controller/interface/service/repository).
+- [ ] Có giới hạn resend OTP như register.
+- [ ] Chỉ cho reset password sau khi xác nhận đúng OTP.
+- [ ] Reset xong có revoke refresh token/session.
+- [ ] Không lộ thông tin email tồn tại/không tồn tại ở bước request.
+
+---
+
+## 9) Ghi chú triển khai thực tế
+
+- Nếu muốn giảm thêm complexity, có thể dùng chung một `OtpApplicationService` cho phần tạo/verify OTP, và module forgot-password chỉ orchestration business.
+- Nếu cần backward compatibility ngắn hạn, có thể giữ alias/table mapping tạm thời trong migration rồi dọn ở bản release kế tiếp.

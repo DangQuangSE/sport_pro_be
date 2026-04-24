@@ -10,6 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+
+import static com.sport_pro_be.auth.constant.AuthConstant.APP_JWT_SECRET_INVALID;
+
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -26,7 +29,7 @@ public class JwtService implements IJwtService {
     void init() {
         byte[] keyBytes = authProperties.getJwtSecret().getBytes(StandardCharsets.UTF_8);
         if (keyBytes.length < 32) {
-            throw new IllegalStateException("APP_JWT_SECRET must be at least 32 characters long");
+            throw new IllegalStateException(APP_JWT_SECRET_INVALID);
         }
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
@@ -48,5 +51,37 @@ public class JwtService implements IJwtService {
     @Override
     public long getExpirationSeconds() {
         return authProperties.getJwtExpirationMinutes() * 60;
+    }
+
+    @Override
+    public String generateForgotPasswordToken(String email) {
+        Instant now = Instant.now();
+        Instant expiresAt = now.plus(authProperties.getForgotPasswordTokenExpirationMinutes(), ChronoUnit.MINUTES);
+
+        return Jwts.builder()
+                .subject(email)
+                .claim("type", "FORGOT_PASSWORD")
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiresAt))
+                .signWith(secretKey)
+                .compact();
+    }
+
+    @Override
+    public String extractEmailFromForgotPasswordToken(String token) {
+        try {
+            var claims = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            if (!"FORGOT_PASSWORD".equals(claims.get("type", String.class))) {
+                return null;
+            }
+            return claims.getSubject();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

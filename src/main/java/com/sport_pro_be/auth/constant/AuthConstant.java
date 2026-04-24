@@ -24,6 +24,7 @@ public class AuthConstant {
     public static final String REFRESH_TOKEN_INVALID_OR_EXPIRED = "Refresh token is invalid or expired";
     public static final String REFRESH_TOKEN_REVOKED = "Refresh token has been revoked";
     public static final String REFRESH_TOKEN_REUSE_DETECTED = "Refresh token reuse detected. Please login again";
+    public static final String APP_JWT_SECRET_INVALID = "APP_JWT_SECRET must be at least 32 characters long";
     public static final int OTP_MAX_ATTEMPTS = 5;
     public static final String SHA_256_NOT_AVAILABLE = "SHA-256 algorithm is not available";
 }
