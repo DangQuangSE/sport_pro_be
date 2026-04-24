@@ -28,6 +28,12 @@ public class AuthProperties {
     private long otpResendCooldownSeconds = 60;
 
     @Min(1)
+    private long forgotPasswordTokenExpirationMinutes = 15;
+
+    @Min(1)
+    private int forgotPasswordMaxAttempts = 5;
+
+    @Min(1)
     private long refreshTokenExpirationDays = 14;
 
     @NotBlank

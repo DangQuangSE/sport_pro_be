@@ -1,6 +1,7 @@
 package com.sport_pro_be.auth.service;
 
-import com.sport_pro_be.auth.domain.EmailOtp;
+import com.sport_pro_be.auth.domain.OtpType;
+import com.sport_pro_be.auth.domain.OtpVerification;
 import com.sport_pro_be.auth.domain.RefreshToken;
 import com.sport_pro_be.auth.domain.User;
 import com.sport_pro_be.auth.dto.ApiMessageResponse;
@@ -11,7 +12,7 @@ import com.sport_pro_be.auth.dto.RegisterRequest;
 import com.sport_pro_be.auth.interfaces.IAuthService;
 import com.sport_pro_be.auth.interfaces.IEmailService;
 import com.sport_pro_be.auth.interfaces.IJwtService;
-import com.sport_pro_be.auth.repository.EmailOtpRepository;
+import com.sport_pro_be.auth.repository.OtpVerificationRepository;
 import com.sport_pro_be.auth.repository.RefreshTokenRepository;
 import com.sport_pro_be.auth.repository.UserRepository;
 import com.sport_pro_be.config.AuthProperties;
@@ -63,7 +64,7 @@ public class AuthService implements IAuthService {
     private static final String TOKEN_TYPE_BEARER = "Bearer";
 
     private final UserRepository userRepository;
-    private final EmailOtpRepository emailOtpRepository;
+    private final OtpVerificationRepository otpVerificationRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final IEmailService emailService;
@@ -78,7 +79,7 @@ public class AuthService implements IAuthService {
             throw new ResponseStatusException(CONFLICT, EMAIL_EXIST);
         }
 
-        issueOtpForEmail(normalizedEmail, LocalDateTime.now());
+        issueOtpForEmail(normalizedEmail, OtpType.REGISTER, LocalDateTime.now());
         return new ApiMessageResponse(OTP_SENT_SUCCESS);
     }
 
@@ -90,7 +91,7 @@ public class AuthService implements IAuthService {
             throw new ResponseStatusException(CONFLICT, EMAIL_EXIST);
         }
 
-        EmailOtp latestOtp = emailOtpRepository.findTopByEmailIgnoreCaseOrderByCreatedAtDesc(normalizedEmail)
+        OtpVerification latestOtp = otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(normalizedEmail, OtpType.REGISTER)
                 .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, OTP_VERIFICATION_REQUIRED));
 
         if (!latestOtp.isOtpVerified()) {
@@ -104,7 +105,7 @@ public class AuthService implements IAuthService {
         userRepository.save(user);
 
         latestOtp.setOtpVerified(false);
-        emailOtpRepository.save(latestOtp);
+        otpVerificationRepository.save(latestOtp);
 
         return new ApiMessageResponse(REGISTRATION_SUCCESS);
     }
@@ -199,7 +200,7 @@ public class AuthService implements IAuthService {
     @Transactional
     public ApiMessageResponse verifyOtp(OtpVerifyRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
-        EmailOtp otp = emailOtpRepository.findTopByEmailIgnoreCaseOrderByCreatedAtDesc(normalizedEmail)
+        OtpVerification otp = otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(normalizedEmail, OtpType.REGISTER)
                 .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, INVALID_OTP));
 
         if (otp.isUsed()) {
@@ -208,7 +209,7 @@ public class AuthService implements IAuthService {
 
         if (otp.getExpiresAt().isBefore(LocalDateTime.now())) {
             otp.setUsed(true);
-            emailOtpRepository.save(otp);
+            otpVerificationRepository.save(otp);
             throw new ResponseStatusException(BAD_REQUEST, OTP_EXPIRED);
         }
 
@@ -218,17 +219,17 @@ public class AuthService implements IAuthService {
             otp.setAttemptCount(newAttemptCount);
             if (newAttemptCount >= OTP_MAX_ATTEMPTS) {
                 otp.setUsed(true);
-                emailOtpRepository.save(otp);
+                otpVerificationRepository.save(otp);
                 throw new ResponseStatusException(BAD_REQUEST, OTP_LOCKED_TOO_MANY_ATTEMPTS);
             }
 
-            emailOtpRepository.save(otp);
+            otpVerificationRepository.save(otp);
             throw new ResponseStatusException(BAD_REQUEST, OTP_INCORRECT);
         }
 
         otp.setUsed(true);
         otp.setOtpVerified(true);
-        emailOtpRepository.save(otp);
+        otpVerificationRepository.save(otp);
 
         return new ApiMessageResponse(OTP_VERIFIED_FOR_REGISTRATION);
     }
@@ -242,12 +243,12 @@ public class AuthService implements IAuthService {
             throw new ResponseStatusException(CONFLICT, ACCOUNT_ALREADY_VERIFIED);
         }
 
-        issueOtpForEmail(normalizedEmail, LocalDateTime.now());
+        issueOtpForEmail(normalizedEmail, OtpType.REGISTER, LocalDateTime.now());
         return new ApiMessageResponse(OTP_RESENT_SUCCESS);
     }
 
-    private void issueOtpForEmail(String normalizedEmail, LocalDateTime now) {
-        emailOtpRepository.findTopByEmailIgnoreCaseOrderByCreatedAtDesc(normalizedEmail)
+    private void issueOtpForEmail(String normalizedEmail, OtpType otpType, LocalDateTime now) {
+        otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(normalizedEmail, otpType)
                 .ifPresent(lastOtp -> {
                     LocalDateTime nextAllowed = lastOtp.getCreatedAt()
                             .plusSeconds(authProperties.getOtpResendCooldownSeconds());
@@ -257,17 +258,18 @@ public class AuthService implements IAuthService {
                     }
                 });
 
-        emailOtpRepository.invalidateAllActiveByEmail(normalizedEmail);
+        otpVerificationRepository.invalidateAllActiveByEmailAndType(normalizedEmail, otpType);
 
         String otpCode = generateOtpCode();
-        EmailOtp emailOtp = new EmailOtp();
-        emailOtp.setEmail(normalizedEmail);
-        emailOtp.setOtpCode(otpCode);
-        emailOtp.setUsed(false);
-        emailOtp.setAttemptCount(0);
-        emailOtp.setOtpVerified(false);
-        emailOtp.setExpiresAt(now.plusMinutes(authProperties.getOtpExpirationMinutes()));
-        emailOtpRepository.save(emailOtp);
+        OtpVerification otpVerification = new OtpVerification();
+        otpVerification.setEmail(normalizedEmail);
+        otpVerification.setOtpCode(otpCode);
+        otpVerification.setOtpType(otpType);
+        otpVerification.setUsed(false);
+        otpVerification.setAttemptCount(0);
+        otpVerification.setOtpVerified(false);
+        otpVerification.setExpiresAt(now.plusMinutes(authProperties.getOtpExpirationMinutes()));
+        otpVerificationRepository.save(otpVerification);
 
         emailService.sendOtpEmail(normalizedEmail, otpCode, authProperties.getOtpExpirationMinutes());
     }

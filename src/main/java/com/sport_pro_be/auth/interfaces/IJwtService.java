@@ -7,4 +7,8 @@ public interface IJwtService {
     String generateAccessToken(User user);
 
     long getExpirationSeconds();
+
+    String generateForgotPasswordToken(String email);
+
+    String extractEmailFromForgotPasswordToken(String token);
 }

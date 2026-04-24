@@ -2,6 +2,8 @@ package com.sport_pro_be.auth.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -15,8 +17,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "email_otp_codes")
-public class EmailOtp {
+@Table(name = "otp_verifications")
+public class OtpVerification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +29,10 @@ public class EmailOtp {
 
     @Column(nullable = false, length = 10)
     private String otpCode;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private OtpType otpType;
 
     @Column(nullable = false)
     private LocalDateTime expiresAt;

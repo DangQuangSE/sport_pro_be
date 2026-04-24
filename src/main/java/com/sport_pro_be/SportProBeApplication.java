@@ -23,6 +23,8 @@ public class SportProBeApplication {
 			setIfPresent("APP_JWT_EXP_MINUTES", dotenv.get("APP_JWT_EXP_MINUTES"));
 			setIfPresent("APP_OTP_EXP_MINUTES", dotenv.get("APP_OTP_EXP_MINUTES"));
 			setIfPresent("APP_OTP_RESEND_SECONDS", dotenv.get("APP_OTP_RESEND_SECONDS"));
+			setIfPresent("APP_FORGOT_PASSWORD_TOKEN_EXP_MINUTES", dotenv.get("APP_FORGOT_PASSWORD_TOKEN_EXP_MINUTES"));
+			setIfPresent("APP_FORGOT_PASSWORD_MAX_ATTEMPTS", dotenv.get("APP_FORGOT_PASSWORD_MAX_ATTEMPTS"));
 			setIfPresent("DB_HOST", dotenv.get("DB_HOST"));
 			setIfPresent("DB_PORT", dotenv.get("DB_PORT"));
 			setIfPresent("DB_NAME", dotenv.get("DB_NAME"));
