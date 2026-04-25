@@ -1,6 +1,6 @@
 package com.sport_pro_be.auth.repository;
 
-import com.sport_pro_be.auth.domain.OtpType;
+import com.sport_pro_be.auth.enums.OtpType;
 import com.sport_pro_be.auth.domain.OtpVerification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

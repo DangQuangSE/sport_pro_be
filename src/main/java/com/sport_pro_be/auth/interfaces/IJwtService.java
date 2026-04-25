@@ -11,4 +11,10 @@ public interface IJwtService {
     String generateForgotPasswordToken(String email);
 
     String extractEmailFromForgotPasswordToken(String token);
+
+    String extractEmailFromAccessToken(String token);
+
+    java.util.List<String> extractRolesFromAccessToken(String token);
+
+    Integer extractTokenVersionFromAccessToken(String token);
 }

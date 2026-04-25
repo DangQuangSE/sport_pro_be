@@ -1,6 +1,6 @@
 package com.sport_pro_be.auth.service;
 
-import com.sport_pro_be.auth.domain.OtpType;
+import com.sport_pro_be.auth.enums.OtpType;
 import com.sport_pro_be.auth.domain.OtpVerification;
 import com.sport_pro_be.auth.domain.RefreshToken;
 import com.sport_pro_be.auth.domain.User;

@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -72,6 +73,16 @@ public class AuthController {
     @PostMapping("/resend-otp")
     public ApiMessageResponse resendOtp(@Valid @RequestBody ResendOtpRequest request) {
         return authService.resendOtp(request.email());
+    }
+
+    @GetMapping("/me")
+    public java.util.Map<String, Object> me(org.springframework.security.core.Authentication authentication) {
+        com.sport_pro_be.auth.domain.User user = (com.sport_pro_be.auth.domain.User) authentication.getPrincipal();
+        return java.util.Map.of(
+                "email", user.getEmail(),
+                "role", user.getRole().name(),
+                "authorities", authentication.getAuthorities()
+        );
     }
 
     private LoginSuccessResponse toLoginSuccessResponse(AuthTokenPairResponse tokenPair) {
