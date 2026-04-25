@@ -42,6 +42,8 @@ public class JwtService implements IJwtService {
         return Jwts.builder()
                 .subject(user.getEmail())
                 .claim("uid", user.getId())
+                .claim("roles", java.util.List.of(user.getRole().name()))
+                .claim("tv", user.getTokenVersion())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiresAt))
                 .signWith(secretKey)
@@ -80,6 +82,49 @@ public class JwtService implements IJwtService {
                 return null;
             }
             return claims.getSubject();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public String extractEmailFromAccessToken(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getSubject();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public java.util.List<String> extractRolesFromAccessToken(String token) {
+        try {
+            var claims = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return claims.get("roles", java.util.List.class);
+        } catch (Exception e) {
+            return java.util.Collections.emptyList();
+        }
+    }
+
+    @Override
+    public Integer extractTokenVersionFromAccessToken(String token) {
+        try {
+            var claims = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return claims.get("tv", Integer.class);
         } catch (Exception e) {
             return null;
         }

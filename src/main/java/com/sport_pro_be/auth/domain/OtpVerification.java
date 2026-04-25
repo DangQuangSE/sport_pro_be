@@ -14,6 +14,8 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+import com.sport_pro_be.auth.enums.OtpType;
+
 @Getter
 @Setter
 @Entity

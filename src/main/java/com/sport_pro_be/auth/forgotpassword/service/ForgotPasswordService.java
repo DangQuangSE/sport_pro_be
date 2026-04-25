@@ -1,6 +1,6 @@
 package com.sport_pro_be.auth.forgotpassword.service;
 
-import com.sport_pro_be.auth.domain.OtpType;
+import com.sport_pro_be.auth.enums.OtpType;
 import com.sport_pro_be.auth.domain.OtpVerification;
 import com.sport_pro_be.auth.domain.User;
 import com.sport_pro_be.auth.dto.ApiMessageResponse;
@@ -32,7 +32,6 @@ import static com.sport_pro_be.auth.constant.AuthConstant.OTP_LOCKED_TOO_MANY_AT
 import static com.sport_pro_be.auth.constant.AuthConstant.OTP_REQUEST_TOO_FREQUENT;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
-
 @Service
 @RequiredArgsConstructor
 public class ForgotPasswordService implements IForgotPasswordService {
@@ -51,7 +50,7 @@ public class ForgotPasswordService implements IForgotPasswordService {
     @Transactional
     public ApiMessageResponse requestOtp(ForgotPasswordRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
-        
+
         // Neutral response, whether email exists or not
         String neutralResponse = "If your email exists in our system, an OTP has been sent.";
 
@@ -62,7 +61,8 @@ public class ForgotPasswordService implements IForgotPasswordService {
         LocalDateTime now = LocalDateTime.now();
 
         // Check cooldown
-        otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(normalizedEmail, OtpType.FORGOT_PASSWORD)
+        otpVerificationRepository
+                .findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(normalizedEmail, OtpType.FORGOT_PASSWORD)
                 .ifPresent(lastOtp -> {
                     LocalDateTime nextAllowed = lastOtp.getCreatedAt()
                             .plusSeconds(authProperties.getOtpResendCooldownSeconds());
@@ -96,8 +96,9 @@ public class ForgotPasswordService implements IForgotPasswordService {
     @Transactional
     public ForgotPasswordTokenResponse verifyOtp(VerifyForgotPasswordOtpRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
-        
-        OtpVerification otp = otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(normalizedEmail, OtpType.FORGOT_PASSWORD)
+
+        OtpVerification otp = otpVerificationRepository
+                .findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(normalizedEmail, OtpType.FORGOT_PASSWORD)
                 .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, INVALID_OTP));
 
         if (otp.isUsed()) {
