@@ -1,13 +1,13 @@
 package com.sport_pro_be.auth.controller;
 
-import com.sport_pro_be.auth.dto.ApiMessageResponse;
 import com.sport_pro_be.auth.dto.AuthTokenPairResponse;
 import com.sport_pro_be.auth.dto.LoginRequest;
 import com.sport_pro_be.auth.dto.LoginSuccessResponse;
 import com.sport_pro_be.auth.dto.OtpVerifyRequest;
-import com.sport_pro_be.auth.dto.ResendOtpRequest;
 import com.sport_pro_be.auth.dto.RegisterRequest;
+import com.sport_pro_be.auth.dto.ResendOtpRequest;
 import com.sport_pro_be.auth.interfaces.IAuthService;
+import com.sport_pro_be.common.ApiResponse;
 import com.sport_pro_be.config.AuthProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,11 +17,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+import static com.sport_pro_be.auth.constant.AuthConstant.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,46 +32,61 @@ public class AuthController {
     private final AuthProperties authProperties;
 
     @PostMapping("/register/request-otp")
-    public ApiMessageResponse requestRegistrationOtp(@Valid @RequestBody ResendOtpRequest request) {
-        return authService.requestRegistrationOtp(request.email());
+    public ApiResponse<Void> requestRegistrationOtp(@Valid @RequestBody ResendOtpRequest request) {
+        authService.requestRegistrationOtp(request.email());
+        return ApiResponse.of(OTP_SENT_SUCCESS, null);
     }
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiMessageResponse register(@Valid @RequestBody RegisterRequest request) {
-        return authService.register(request);
+    public ApiResponse<Void> register(@Valid @RequestBody RegisterRequest request) {
+        authService.register(request);
+        return ApiResponse.of(REGISTRATION_SUCCESS, null);
     }
 
     @PostMapping("/login")
-    public LoginSuccessResponse login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
+    public ApiResponse<LoginSuccessResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         AuthTokenPairResponse tokenPair = authService.login(request);
         response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshTokenCookie(tokenPair.refreshToken()).toString());
-        return toLoginSuccessResponse(tokenPair);
+        return ApiResponse.of(LOGIN_SUCCESS, toLoginSuccessResponse(tokenPair));
     }
 
     @PostMapping("/refresh-token")
-    public LoginSuccessResponse refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+    public ApiResponse<LoginSuccessResponse> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = resolveRefreshToken(request);
         AuthTokenPairResponse tokenPair = authService.refreshAccessToken(refreshToken);
         response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshTokenCookie(tokenPair.refreshToken()).toString());
-        return toLoginSuccessResponse(tokenPair);
+        return ApiResponse.of(TOKEN_REFRESHED, toLoginSuccessResponse(tokenPair));
     }
 
     @PostMapping("/logout")
-    public ApiMessageResponse logout(HttpServletRequest request, HttpServletResponse response) {
-        ApiMessageResponse apiResponse = authService.logout(resolveRefreshToken(request));
+    public ApiResponse<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+        authService.logout(resolveRefreshToken(request));
         response.addHeader(HttpHeaders.SET_COOKIE, clearRefreshTokenCookie().toString());
-        return apiResponse;
+        return ApiResponse.of(LOGOUT_SUCCESS, null);
     }
 
     @PostMapping("/verify-otp")
-    public ApiMessageResponse verifyOtp(@Valid @RequestBody OtpVerifyRequest request) {
-        return authService.verifyOtp(request);
+    public ApiResponse<Void> verifyOtp(@Valid @RequestBody OtpVerifyRequest request) {
+        authService.verifyOtp(request);
+        return ApiResponse.of(OTP_VERIFIED_FOR_REGISTRATION, null);
     }
 
     @PostMapping("/resend-otp")
-    public ApiMessageResponse resendOtp(@Valid @RequestBody ResendOtpRequest request) {
-        return authService.resendOtp(request.email());
+    public ApiResponse<Void> resendOtp(@Valid @RequestBody ResendOtpRequest request) {
+        authService.resendOtp(request.email());
+        return ApiResponse.of(OTP_RESENT_SUCCESS, null);
+    }
+
+    @GetMapping("/me")
+    public ApiResponse<Map<String, Object>> me(org.springframework.security.core.Authentication authentication) {
+        com.sport_pro_be.auth.domain.User user = (com.sport_pro_be.auth.domain.User) authentication.getPrincipal();
+        Map<String, Object> data = Map.of(
+                "email", user.getEmail(),
+                "role", user.getRole().name(),
+                "authorities", authentication.getAuthorities()
+        );
+        return ApiResponse.of(USER_DETAILS_RETRIEVED, data);
     }
 
     private LoginSuccessResponse toLoginSuccessResponse(AuthTokenPairResponse tokenPair) {

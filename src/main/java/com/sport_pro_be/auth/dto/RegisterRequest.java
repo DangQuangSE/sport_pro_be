@@ -1,11 +1,17 @@
 package com.sport_pro_be.auth.dto;
 
+import com.sport_pro_be.auth.constant.AuthConstant;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
-        @NotBlank @Email String email,
-        @NotBlank @Size(min = 8, max = 72) String password
+        @NotBlank(message = AuthConstant.EMAIL_REQUIRED)
+        @Email(message = AuthConstant.EMAIL_INVALID)
+        String email,
+
+        @NotBlank(message = AuthConstant.PASSWORD_REQUIRED)
+        @Size(min = 6, message = AuthConstant.PASSWORD_MIN_SIZE)
+        String password
 ) {
 }
