@@ -1,6 +1,7 @@
 package com.sport_pro_be.common;
 
 import com.sport_pro_be.constant.ApiExceptionConstant;
+import com.sport_pro_be.exception.AppException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +9,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -17,42 +17,36 @@ import java.util.Map;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<Map<String, Object>> handleResponseStatusException(ResponseStatusException ex) {
-        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
-        return ResponseEntity.status(status).body(errorBody(status.value(), ex.getReason()));
+    @ExceptionHandler(AppException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAppException(AppException ex) {
+        return ResponseEntity.status(ex.getStatus())
+                .body(new ApiResponse<>(ex.getMessage(), null, Instant.now()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST.value(), ApiExceptionConstant.INVALID_REQUEST_DATA);
-
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", ApiExceptionConstant.INVALID_REQUEST_DATA);
+        body.put("timestamp", Instant.now());
         Map<String, String> fieldErrors = new HashMap<>();
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
-        body.put("fieldErrors", fieldErrors);
+        body.put("data", fieldErrors);
 
         return ResponseEntity.badRequest().body(body);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolation(ConstraintViolationException ex) {
         return ResponseEntity.badRequest()
-                .body(errorBody(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+                .body(new ApiResponse<>(ex.getMessage(), null, Instant.now()));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleUnhandledException(Exception ex) {
+    public ResponseEntity<ApiResponse<Void>> handleUnhandledException(Exception ex) {
+        // Log the actual error here in a real app
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(errorBody(HttpStatus.INTERNAL_SERVER_ERROR.value(), ApiExceptionConstant.INTERNAL_SERVER_ERROR));
-    }
-
-    private Map<String, Object> errorBody(int status, String message) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", Instant.now().toString());
-        body.put("status", status);
-        body.put("message", message);
-        return body;
+                .body(new ApiResponse<>(ApiExceptionConstant.INTERNAL_SERVER_ERROR, null, Instant.now()));
     }
 }

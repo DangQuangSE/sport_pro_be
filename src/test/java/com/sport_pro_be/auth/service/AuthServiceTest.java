@@ -1,6 +1,6 @@
 package com.sport_pro_be.auth.service;
 
-import com.sport_pro_be.auth.domain.OtpType;
+import com.sport_pro_be.auth.enums.OtpType;
 import com.sport_pro_be.auth.domain.OtpVerification;
 import com.sport_pro_be.auth.domain.RefreshToken;
 import com.sport_pro_be.auth.domain.User;
@@ -81,7 +81,8 @@ class AuthServiceTest {
         String email = "user@example.com";
         OtpVerification latestOtp = buildOtp(email, "123456", 0, false, LocalDateTime.now().plusMinutes(5));
 
-        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(email, OtpType.REGISTER)).thenReturn(Optional.of(latestOtp));
+        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(email, OtpType.REGISTER))
+                .thenReturn(Optional.of(latestOtp));
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> authService.verifyOtp(new OtpVerifyRequest(email, "999999")));
@@ -97,7 +98,8 @@ class AuthServiceTest {
         String email = "user@example.com";
         OtpVerification latestOtp = buildOtp(email, "123456", 4, false, LocalDateTime.now().plusMinutes(5));
 
-        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(email, OtpType.REGISTER)).thenReturn(Optional.of(latestOtp));
+        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(email, OtpType.REGISTER))
+                .thenReturn(Optional.of(latestOtp));
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> authService.verifyOtp(new OtpVerifyRequest(email, "000000")));
@@ -113,8 +115,10 @@ class AuthServiceTest {
         String email = "user@example.com";
 
         when(userRepository.existsByEmailIgnoreCase(email)).thenReturn(false);
-        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(email, OtpType.REGISTER)).thenReturn(Optional.empty());
-        when(otpVerificationRepository.save(any(OtpVerification.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(email, OtpType.REGISTER))
+                .thenReturn(Optional.empty());
+        when(otpVerificationRepository.save(any(OtpVerification.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         var response = authService.requestRegistrationOtp(email);
         assertEquals(OTP_SENT_SUCCESS, response.message());
@@ -142,7 +146,8 @@ class AuthServiceTest {
         latestOtp.setOtpVerified(false);
 
         when(userRepository.existsByEmailIgnoreCase(email)).thenReturn(false);
-        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(email, OtpType.REGISTER)).thenReturn(Optional.of(latestOtp));
+        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(email, OtpType.REGISTER))
+                .thenReturn(Optional.of(latestOtp));
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> authService.register(new RegisterRequest(email, "password123")));
@@ -157,7 +162,8 @@ class AuthServiceTest {
         latestOtp.setOtpVerified(true);
 
         when(userRepository.existsByEmailIgnoreCase(email)).thenReturn(false);
-        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(email, OtpType.REGISTER)).thenReturn(Optional.of(latestOtp));
+        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(email, OtpType.REGISTER))
+                .thenReturn(Optional.of(latestOtp));
         when(passwordEncoder.encode("password123")).thenReturn("hashed-password");
 
         authService.register(new RegisterRequest(email, "password123"));
@@ -225,7 +231,8 @@ class AuthServiceTest {
         verify(refreshTokenRepository).save(existing);
     }
 
-    private OtpVerification buildOtp(String email, String code, Integer attempts, boolean used, LocalDateTime expiresAt) {
+    private OtpVerification buildOtp(String email, String code, Integer attempts, boolean used,
+            LocalDateTime expiresAt) {
         OtpVerification otp = new OtpVerification();
         otp.setEmail(email);
         otp.setOtpType(OtpType.REGISTER);
