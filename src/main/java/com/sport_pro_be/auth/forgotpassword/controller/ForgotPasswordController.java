@@ -1,14 +1,13 @@
 package com.sport_pro_be.auth.forgotpassword.controller;
 
-import com.sport_pro_be.auth.dto.ApiMessageResponse;
 import com.sport_pro_be.auth.forgotpassword.dto.ForgotPasswordRequest;
 import com.sport_pro_be.auth.forgotpassword.dto.ForgotPasswordTokenResponse;
 import com.sport_pro_be.auth.forgotpassword.dto.ResetPasswordRequest;
 import com.sport_pro_be.auth.forgotpassword.dto.VerifyForgotPasswordOtpRequest;
 import com.sport_pro_be.auth.forgotpassword.interfaces.IForgotPasswordService;
+import com.sport_pro_be.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,17 +21,20 @@ public class ForgotPasswordController {
     private final IForgotPasswordService forgotPasswordService;
 
     @PostMapping("/request-otp")
-    public ResponseEntity<ApiMessageResponse> requestOtp(@Valid @RequestBody ForgotPasswordRequest request) {
-        return ResponseEntity.ok(forgotPasswordService.requestOtp(request));
+    public ApiResponse<Void> requestOtp(@Valid @RequestBody ForgotPasswordRequest request) {
+        String message = forgotPasswordService.requestOtp(request);
+        return ApiResponse.of(message, null);
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<ForgotPasswordTokenResponse> verifyOtp(@Valid @RequestBody VerifyForgotPasswordOtpRequest request) {
-        return ResponseEntity.ok(forgotPasswordService.verifyOtp(request));
+    public ApiResponse<ForgotPasswordTokenResponse> verifyOtp(@Valid @RequestBody VerifyForgotPasswordOtpRequest request) {
+        ForgotPasswordTokenResponse response = forgotPasswordService.verifyOtp(request);
+        return ApiResponse.of(response.message(), response);
     }
 
     @PostMapping("/reset")
-    public ResponseEntity<ApiMessageResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        return ResponseEntity.ok(forgotPasswordService.resetPassword(request));
+    public ApiResponse<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        String message = forgotPasswordService.resetPassword(request);
+        return ApiResponse.of(message, null);
     }
 }

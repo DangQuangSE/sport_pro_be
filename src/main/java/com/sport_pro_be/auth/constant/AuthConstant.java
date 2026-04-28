@@ -25,6 +25,27 @@ public class AuthConstant {
     public static final String REFRESH_TOKEN_REVOKED = "Refresh token has been revoked";
     public static final String REFRESH_TOKEN_REUSE_DETECTED = "Refresh token reuse detected. Please login again";
     public static final String APP_JWT_SECRET_INVALID = "APP_JWT_SECRET must be at least 32 characters long";
+    
+    // Forgot Password
+    public static final String FORGOT_PASSWORD_OTP_SENT = "If your email exists in our system, an OTP has been sent";
+    public static final String INVALID_FORGOT_PASSWORD_TOKEN = "Invalid or expired forgot password token";
+    public static final String PASSWORD_RESET_SUCCESS = "Password has been reset successfully. Please login with your new password";
+    
+    // Auth Success
+    public static final String LOGIN_SUCCESS = "Login successful";
+    public static final String TOKEN_REFRESHED = "Token refreshed successfully";
+    public static final String USER_DETAILS_RETRIEVED = "User details retrieved successfully";
+    public static final String OTP_VERIFIED_SUCCESS = "OTP verified successfully";
+
+    // Validation Messages
+    public static final String EMAIL_REQUIRED = "Email is required";
+    public static final String EMAIL_INVALID = "Email is invalid";
+    public static final String PASSWORD_REQUIRED = "Password is required";
+    public static final String PASSWORD_MIN_SIZE = "Password must be at least 6 characters";
+    public static final String OTP_CODE_REQUIRED = "OTP code is required";
+    public static final String OTP_INVALID_FORMAT = "OTP must be exactly 6 digits";
+    public static final String TOKEN_REQUIRED = "Token is required";
+
     public static final int OTP_MAX_ATTEMPTS = 5;
     public static final String SHA_256_NOT_AVAILABLE = "SHA-256 algorithm is not available";
 }
