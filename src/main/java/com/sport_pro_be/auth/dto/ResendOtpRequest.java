@@ -1,9 +1,12 @@
 package com.sport_pro_be.auth.dto;
 
+import com.sport_pro_be.auth.constant.AuthConstant;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public record ResendOtpRequest(
-        @NotBlank @Email String email
+        @NotBlank(message = AuthConstant.EMAIL_REQUIRED)
+        @Email(message = AuthConstant.EMAIL_INVALID)
+        String email
 ) {
 }
