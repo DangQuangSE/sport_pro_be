@@ -19,33 +19,33 @@ public class AuthProperties {
     private String jwtSecret;
 
     @Min(1)
-    private long jwtExpirationMinutes = 60;
+    private long jwtExpirationMinutes;
 
     @Min(1)
-    private long otpExpirationMinutes = 5;
+    private long otpExpirationMinutes;
 
     @Min(0)
-    private long otpResendCooldownSeconds = 60;
+    private long otpResendCooldownSeconds;
 
     @Min(1)
-    private long forgotPasswordTokenExpirationMinutes = 15;
+    private long forgotPasswordTokenExpirationMinutes;
 
     @Min(1)
-    private int forgotPasswordMaxAttempts = 5;
+    private int forgotPasswordMaxAttempts;
 
     @Min(1)
-    private long refreshTokenExpirationDays = 14;
+    private long refreshTokenExpirationDays;
 
     @NotBlank
-    private String refreshTokenCookieName = "refreshToken";
+    private String refreshTokenCookieName;
 
     private boolean refreshTokenCookieSecure;
 
     @NotBlank
-    private String refreshTokenCookieSameSite = "Lax";
+    private String refreshTokenCookieSameSite;
 
     @NotBlank
-    private String refreshTokenCookiePath = "/api/auth";
+    private String refreshTokenCookiePath;
 
     @NotBlank
     private String mailFrom;
