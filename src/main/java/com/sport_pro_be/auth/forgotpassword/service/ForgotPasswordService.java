@@ -1,9 +1,8 @@
 package com.sport_pro_be.auth.forgotpassword.service;
 
-import com.sport_pro_be.auth.enums.OtpType;
 import com.sport_pro_be.auth.domain.OtpVerification;
 import com.sport_pro_be.auth.domain.User;
-import com.sport_pro_be.auth.dto.ApiMessageResponse;
+import com.sport_pro_be.auth.enums.OtpType;
 import com.sport_pro_be.auth.forgotpassword.dto.ForgotPasswordRequest;
 import com.sport_pro_be.auth.forgotpassword.dto.ForgotPasswordTokenResponse;
 import com.sport_pro_be.auth.forgotpassword.dto.ResetPasswordRequest;
@@ -15,23 +14,20 @@ import com.sport_pro_be.auth.repository.OtpVerificationRepository;
 import com.sport_pro_be.auth.repository.RefreshTokenRepository;
 import com.sport_pro_be.auth.repository.UserRepository;
 import com.sport_pro_be.config.AuthProperties;
+import com.sport_pro_be.exception.BadRequestException;
+import com.sport_pro_be.exception.ResourceNotFoundException;
+import com.sport_pro_be.exception.TooManyRequestsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Locale;
 
-import static com.sport_pro_be.auth.constant.AuthConstant.INVALID_OTP;
-import static com.sport_pro_be.auth.constant.AuthConstant.OTP_EXPIRED;
-import static com.sport_pro_be.auth.constant.AuthConstant.OTP_INCORRECT;
-import static com.sport_pro_be.auth.constant.AuthConstant.OTP_LOCKED_TOO_MANY_ATTEMPTS;
-import static com.sport_pro_be.auth.constant.AuthConstant.OTP_REQUEST_TOO_FREQUENT;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
+import static com.sport_pro_be.auth.constant.AuthConstant.*;
+
 @Service
 @RequiredArgsConstructor
 public class ForgotPasswordService implements IForgotPasswordService {
@@ -48,14 +44,11 @@ public class ForgotPasswordService implements IForgotPasswordService {
 
     @Override
     @Transactional
-    public ApiMessageResponse requestOtp(ForgotPasswordRequest request) {
+    public String requestOtp(ForgotPasswordRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
 
-        // Neutral response, whether email exists or not
-        String neutralResponse = "If your email exists in our system, an OTP has been sent.";
-
         if (!userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-            return new ApiMessageResponse(neutralResponse);
+            return FORGOT_PASSWORD_OTP_SENT;
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -67,7 +60,7 @@ public class ForgotPasswordService implements IForgotPasswordService {
                     LocalDateTime nextAllowed = lastOtp.getCreatedAt()
                             .plusSeconds(authProperties.getOtpResendCooldownSeconds());
                     if (nextAllowed.isAfter(now)) {
-                        throw new ResponseStatusException(TOO_MANY_REQUESTS, OTP_REQUEST_TOO_FREQUENT);
+                        throw new TooManyRequestsException(OTP_REQUEST_TOO_FREQUENT);
                     }
                 });
 
@@ -89,7 +82,7 @@ public class ForgotPasswordService implements IForgotPasswordService {
         // Send email
         emailService.sendOtpEmail(normalizedEmail, otpCode, authProperties.getOtpExpirationMinutes());
 
-        return new ApiMessageResponse(neutralResponse);
+        return FORGOT_PASSWORD_OTP_SENT;
     }
 
     @Override
@@ -99,16 +92,16 @@ public class ForgotPasswordService implements IForgotPasswordService {
 
         OtpVerification otp = otpVerificationRepository
                 .findTopByEmailIgnoreCaseAndOtpTypeOrderByCreatedAtDesc(normalizedEmail, OtpType.FORGOT_PASSWORD)
-                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, INVALID_OTP));
+                .orElseThrow(() -> new BadRequestException(INVALID_OTP));
 
         if (otp.isUsed()) {
-            throw new ResponseStatusException(BAD_REQUEST, INVALID_OTP);
+            throw new BadRequestException(INVALID_OTP);
         }
 
         if (otp.getExpiresAt().isBefore(LocalDateTime.now())) {
             otp.setUsed(true);
             otpVerificationRepository.save(otp);
-            throw new ResponseStatusException(BAD_REQUEST, OTP_EXPIRED);
+            throw new BadRequestException(OTP_EXPIRED);
         }
 
         if (!otp.getOtpCode().equals(request.otpCode())) {
@@ -118,10 +111,10 @@ public class ForgotPasswordService implements IForgotPasswordService {
             if (newAttemptCount >= authProperties.getForgotPasswordMaxAttempts()) {
                 otp.setUsed(true);
                 otpVerificationRepository.save(otp);
-                throw new ResponseStatusException(BAD_REQUEST, OTP_LOCKED_TOO_MANY_ATTEMPTS);
+                throw new BadRequestException(OTP_LOCKED_TOO_MANY_ATTEMPTS);
             }
             otpVerificationRepository.save(otp);
-            throw new ResponseStatusException(BAD_REQUEST, OTP_INCORRECT);
+            throw new BadRequestException(OTP_INCORRECT);
         }
 
         otp.setUsed(true);
@@ -129,19 +122,19 @@ public class ForgotPasswordService implements IForgotPasswordService {
         otpVerificationRepository.save(otp);
 
         String token = jwtService.generateForgotPasswordToken(normalizedEmail);
-        return new ForgotPasswordTokenResponse("OTP Verified. Use this token to reset your password.", token);
+        return new ForgotPasswordTokenResponse(OTP_VERIFIED_SUCCESS, token);
     }
 
     @Override
     @Transactional
-    public ApiMessageResponse resetPassword(ResetPasswordRequest request) {
+    public String resetPassword(ResetPasswordRequest request) {
         String email = jwtService.extractEmailFromForgotPasswordToken(request.forgotPasswordToken());
         if (email == null) {
-            throw new ResponseStatusException(BAD_REQUEST, "Invalid or expired forgot password token");
+            throw new BadRequestException(INVALID_FORGOT_PASSWORD_TOKEN);
         }
 
         User user = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, "User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ACCOUNT_NOT_FOUND));
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
@@ -149,7 +142,7 @@ public class ForgotPasswordService implements IForgotPasswordService {
         // Revoke all refresh tokens
         refreshTokenRepository.revokeActiveByUserId(user.getId(), LocalDateTime.now());
 
-        return new ApiMessageResponse("Password has been reset successfully. Please login with your new password.");
+        return PASSWORD_RESET_SUCCESS;
     }
 
     private String normalizeEmail(String email) {
