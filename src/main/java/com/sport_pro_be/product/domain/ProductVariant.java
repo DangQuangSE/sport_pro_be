@@ -1,7 +1,7 @@
-package com.sport_pro_be.product.domain;
+﻿package com.sport_pro_be.product.domain;
 
 import com.sport_pro_be.common.AbstractAuditingEntity;
-import com.sport_pro_be.product.constant.ProductStatus;
+import com.sport_pro_be.product.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -48,3 +48,4 @@ public class ProductVariant extends AbstractAuditingEntity {
     @Builder.Default
     private ProductStatus status = ProductStatus.ACTIVE;
 }
+

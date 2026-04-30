@@ -1,7 +1,8 @@
-package com.sport_pro_be.product.service;
+﻿package com.sport_pro_be.product.service;
 
 import com.sport_pro_be.exception.ConflictException;
 import com.sport_pro_be.exception.ResourceNotFoundException;
+import com.sport_pro_be.product.constant.ProductMessageConstant;
 import com.sport_pro_be.product.domain.Product;
 import com.sport_pro_be.product.domain.ProductVariant;
 import com.sport_pro_be.product.dto.request.ProductVariantRequest;
@@ -24,10 +25,10 @@ public class ProductVariantService implements IProductVariantService {
     @Transactional
     public ProductVariantResponse createVariant(Long productId, ProductVariantRequest request) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ProductMessageConstant.PRODUCT_NOT_FOUND));
 
         if (productVariantRepository.existsBySku(request.getSku())) {
-            throw new ConflictException("SKU already exists");
+            throw new ConflictException(ProductMessageConstant.SKU_ALREADY_EXISTS);
         }
 
         ProductVariant variant = ProductVariant.builder()
@@ -49,10 +50,10 @@ public class ProductVariantService implements IProductVariantService {
     @Transactional
     public ProductVariantResponse updateVariant(Long variantId, ProductVariantRequest request) {
         ProductVariant variant = productVariantRepository.findById(variantId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product Variant not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ProductMessageConstant.VARIANT_NOT_FOUND));
 
         if (productVariantRepository.existsBySkuAndIdNot(request.getSku(), variantId)) {
-            throw new ConflictException("SKU already exists");
+            throw new ConflictException(ProductMessageConstant.SKU_ALREADY_EXISTS);
         }
 
         variant.setSku(request.getSku());
@@ -71,7 +72,7 @@ public class ProductVariantService implements IProductVariantService {
     @Transactional
     public void deleteVariant(Long variantId) {
         ProductVariant variant = productVariantRepository.findById(variantId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product Variant not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ProductMessageConstant.VARIANT_NOT_FOUND));
         productVariantRepository.delete(variant);
     }
 
@@ -88,3 +89,4 @@ public class ProductVariantService implements IProductVariantService {
                 .build();
     }
 }
+

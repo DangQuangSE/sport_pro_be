@@ -11,6 +11,11 @@ Là một lập trình viên Backend Senior, dưới đây là những bộ quy 
 - **Quy tắc trinh sát (Boy Scout Rule):** Luôn để lại code sạch hơn so với lúc bạn tìm thấy nó.
 
 ## 2. Kiến trúc & Thiết kế (Architecture & Design)
+- **Cấu trúc Package Chuẩn (Package Structure):** Để tránh lộn xộn, mỗi module phải tuân thủ nghiêm ngặt cấu trúc:
+  - `interfaces`: Chứa TẤT CẢ các Interface (VD: `IProductService.java`). Không dùng từ khóa `interface` làm tên package vì lỗi cú pháp Java.
+  - `enums`: Dành riêng cho các kiểu dữ liệu Enum (VD: `Gender.java`, `ProductStatus.java`). Tuyệt đối KHÔNG gộp chung enum vào thư mục `constant`.
+  - `constant`: Chỉ chứa các lớp hằng số tĩnh (`public static final`).
+  - `service`: Chỉ chứa các class Implementation (`class ProductService implements IProductService`). KHÔNG đặt hậu tố `Impl` vào tên class.
 - **SOLID Principles:** Luôn hướng tới các nguyên lý SOLID. Đặc biệt chú trọng Single Responsibility và Dependency Inversion (Sử dụng Interface thay vì Implementation).
 - **Controller mỏng, Service dày (Thin Controller, Fat Service):** 
   - Controller chỉ làm nhiệm vụ nhận Request, validate cơ bản, gọi Service và trả về Response.

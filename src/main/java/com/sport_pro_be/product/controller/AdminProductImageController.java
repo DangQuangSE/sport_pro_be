@@ -1,6 +1,7 @@
-package com.sport_pro_be.product.controller;
+﻿package com.sport_pro_be.product.controller;
 
 import com.sport_pro_be.common.ApiResponse;
+import com.sport_pro_be.product.constant.ProductMessageConstant;
 import com.sport_pro_be.product.interfaces.IProductImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +18,7 @@ public class AdminProductImageController {
     @DeleteMapping("/{imageId}")
     public ApiResponse<Void> deleteImage(@PathVariable Long imageId) {
         productImageService.deleteImage(imageId);
-        return ApiResponse.of("Image deleted successfully", null);
+        return ApiResponse.of(ProductMessageConstant.IMAGE_DELETED, null);
     }
 }
+

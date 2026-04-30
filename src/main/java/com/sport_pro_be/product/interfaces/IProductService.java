@@ -1,7 +1,7 @@
-package com.sport_pro_be.product.interfaces;
+﻿package com.sport_pro_be.product.interfaces;
 
-import com.sport_pro_be.product.constant.Gender;
-import com.sport_pro_be.product.constant.ProductStatus;
+import com.sport_pro_be.product.enums.Gender;
+import com.sport_pro_be.product.enums.ProductStatus;
 import com.sport_pro_be.product.dto.request.ProductCreateRequest;
 import com.sport_pro_be.product.dto.request.ProductUpdateRequest;
 import com.sport_pro_be.product.dto.response.ProductDetailResponse;
@@ -19,3 +19,4 @@ public interface IProductService {
     ProductDetailResponse getProductById(Long id);
     ProductDetailResponse getProductBySlug(String slug);
 }
+

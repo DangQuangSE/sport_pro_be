@@ -1,4 +1,4 @@
-package com.sport_pro_be.product.repository;
+﻿package com.sport_pro_be.product.repository;
 
 import com.sport_pro_be.product.domain.ProductVariant;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,3 +12,4 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     boolean existsBySkuAndIdNot(String sku, Long id);
     List<ProductVariant> findByProductId(Long productId);
 }
+

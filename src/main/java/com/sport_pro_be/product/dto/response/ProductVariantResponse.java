@@ -1,6 +1,6 @@
-package com.sport_pro_be.product.dto.response;
+﻿package com.sport_pro_be.product.dto.response;
 
-import com.sport_pro_be.product.constant.ProductStatus;
+import com.sport_pro_be.product.enums.ProductStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,3 +20,4 @@ public class ProductVariantResponse {
     private Integer stockQuantity;
     private ProductStatus status;
 }
+
