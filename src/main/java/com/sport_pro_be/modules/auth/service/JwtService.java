@@ -1,7 +1,7 @@
-package com.sport_pro_be.auth.service;
+﻿package com.sport_pro_be.modules.auth.service;
 
-import com.sport_pro_be.auth.domain.User;
-import com.sport_pro_be.auth.interfaces.IJwtService;
+import com.sport_pro_be.modules.auth.domain.User;
+import com.sport_pro_be.modules.auth.interfaces.IJwtService;
 import com.sport_pro_be.config.AuthProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -130,3 +130,4 @@ public class JwtService implements IJwtService {
         }
     }
 }
+

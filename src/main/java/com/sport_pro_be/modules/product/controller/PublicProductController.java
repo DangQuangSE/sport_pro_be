@@ -1,12 +1,12 @@
-﻿package com.sport_pro_be.product.controller;
+﻿package com.sport_pro_be.modules.product.controller;
 
 import com.sport_pro_be.common.ApiResponse;
-import com.sport_pro_be.product.enums.Gender;
-import com.sport_pro_be.product.constant.ProductMessageConstant;
-import com.sport_pro_be.product.enums.ProductStatus;
-import com.sport_pro_be.product.dto.response.ProductDetailResponse;
-import com.sport_pro_be.product.dto.response.ProductListResponse;
-import com.sport_pro_be.product.interfaces.IProductService;
+import com.sport_pro_be.modules.product.enums.Gender;
+import com.sport_pro_be.modules.product.constant.ProductMessageConstant;
+import com.sport_pro_be.modules.product.enums.ProductStatus;
+import com.sport_pro_be.modules.product.dto.response.ProductDetailResponse;
+import com.sport_pro_be.modules.product.dto.response.ProductListResponse;
+import com.sport_pro_be.modules.product.interfaces.IProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,4 +42,5 @@ public class PublicProductController {
         return ApiResponse.of(ProductMessageConstant.SUCCESS, productService.getProductBySlug(slug));
     }
 }
+
 

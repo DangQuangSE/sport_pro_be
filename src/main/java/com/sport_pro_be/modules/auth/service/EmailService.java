@@ -1,6 +1,6 @@
-package com.sport_pro_be.auth.service;
+﻿package com.sport_pro_be.modules.auth.service;
 
-import com.sport_pro_be.auth.interfaces.IEmailService;
+import com.sport_pro_be.modules.auth.interfaces.IEmailService;
 import com.sport_pro_be.config.AuthProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.MailException;
@@ -35,3 +35,4 @@ public class EmailService implements IEmailService {
         }
     }
 }
+

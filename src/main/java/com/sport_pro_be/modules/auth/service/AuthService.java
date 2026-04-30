@@ -1,19 +1,19 @@
-package com.sport_pro_be.auth.service;
+﻿package com.sport_pro_be.modules.auth.service;
 
-import com.sport_pro_be.auth.domain.OtpVerification;
-import com.sport_pro_be.auth.domain.RefreshToken;
-import com.sport_pro_be.auth.domain.User;
-import com.sport_pro_be.auth.dto.AuthTokenPairResponse;
-import com.sport_pro_be.auth.dto.LoginRequest;
-import com.sport_pro_be.auth.dto.OtpVerifyRequest;
-import com.sport_pro_be.auth.dto.RegisterRequest;
-import com.sport_pro_be.auth.enums.OtpType;
-import com.sport_pro_be.auth.interfaces.IAuthService;
-import com.sport_pro_be.auth.interfaces.IEmailService;
-import com.sport_pro_be.auth.interfaces.IJwtService;
-import com.sport_pro_be.auth.repository.OtpVerificationRepository;
-import com.sport_pro_be.auth.repository.RefreshTokenRepository;
-import com.sport_pro_be.auth.repository.UserRepository;
+import com.sport_pro_be.modules.auth.domain.OtpVerification;
+import com.sport_pro_be.modules.auth.domain.RefreshToken;
+import com.sport_pro_be.modules.auth.domain.User;
+import com.sport_pro_be.modules.auth.dto.AuthTokenPairResponse;
+import com.sport_pro_be.modules.auth.dto.LoginRequest;
+import com.sport_pro_be.modules.auth.dto.OtpVerifyRequest;
+import com.sport_pro_be.modules.auth.dto.RegisterRequest;
+import com.sport_pro_be.modules.auth.enums.OtpType;
+import com.sport_pro_be.modules.auth.interfaces.IAuthService;
+import com.sport_pro_be.modules.auth.interfaces.IEmailService;
+import com.sport_pro_be.modules.auth.interfaces.IJwtService;
+import com.sport_pro_be.modules.auth.repository.OtpVerificationRepository;
+import com.sport_pro_be.modules.auth.repository.RefreshTokenRepository;
+import com.sport_pro_be.modules.auth.repository.UserRepository;
 import com.sport_pro_be.config.AuthProperties;
 import com.sport_pro_be.exception.*;
 import lombok.RequiredArgsConstructor;
@@ -284,3 +284,4 @@ public class AuthService implements IAuthService {
         }
     }
 }
+

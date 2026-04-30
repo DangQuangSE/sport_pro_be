@@ -1,4 +1,4 @@
-package com.sport_pro_be.brand.constant;
+﻿package com.sport_pro_be.modules.brand.constant;
 
 public class BrandConstant {
     private BrandConstant() {
@@ -20,3 +20,4 @@ public class BrandConstant {
     public static final String NAME_CANNOT_BE_BLANK = "Brand name cannot be blank";
     public static final String NAME_SIZE = "Brand name must be between 2 and 100 characters";
 }
+

@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.product.constant;
+﻿package com.sport_pro_be.modules.product.constant;
 
 public class ProductMessageConstant {
     private ProductMessageConstant() {}
@@ -36,4 +36,5 @@ public class ProductMessageConstant {
     public static final String IMAGE_ADDED = "Image added successfully";
     public static final String IMAGE_DELETED = "Image deleted successfully";
 }
+
 

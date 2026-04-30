@@ -1,4 +1,4 @@
-package com.sport_pro_be.category.domain;
+﻿package com.sport_pro_be.modules.category.domain;
 
 import com.sport_pro_be.common.AbstractAuditingEntity;
 import jakarta.persistence.*;
@@ -43,3 +43,4 @@ public class Category extends AbstractAuditingEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 }
+

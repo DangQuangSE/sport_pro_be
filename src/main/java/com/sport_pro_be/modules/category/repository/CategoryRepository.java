@@ -1,6 +1,6 @@
-package com.sport_pro_be.category.repository;
+﻿package com.sport_pro_be.modules.category.repository;
 
-import com.sport_pro_be.category.domain.Category;
+import com.sport_pro_be.modules.category.domain.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,3 +16,4 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     org.springframework.data.domain.Page<Category> findAllByNameContainingIgnoreCaseAndIsActiveTrue(String name, org.springframework.data.domain.Pageable pageable);
     org.springframework.data.domain.Page<Category> findAllByIsActiveTrue(org.springframework.data.domain.Pageable pageable);
 }
+

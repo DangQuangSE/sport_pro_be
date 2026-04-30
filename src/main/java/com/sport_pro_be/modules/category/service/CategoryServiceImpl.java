@@ -1,11 +1,11 @@
-package com.sport_pro_be.category.service;
+﻿package com.sport_pro_be.modules.category.service;
 
-import com.sport_pro_be.category.constant.CategoryConstant;
-import com.sport_pro_be.category.domain.Category;
-import com.sport_pro_be.category.dto.CategoryRequest;
-import com.sport_pro_be.category.dto.CategoryResponse;
-import com.sport_pro_be.category.dto.CategoryTreeResponse;
-import com.sport_pro_be.category.repository.CategoryRepository;
+import com.sport_pro_be.modules.category.constant.CategoryConstant;
+import com.sport_pro_be.modules.category.domain.Category;
+import com.sport_pro_be.modules.category.dto.CategoryRequest;
+import com.sport_pro_be.modules.category.dto.CategoryResponse;
+import com.sport_pro_be.modules.category.dto.CategoryTreeResponse;
+import com.sport_pro_be.modules.category.repository.CategoryRepository;
 import com.sport_pro_be.common.SlugUtils;
 import com.sport_pro_be.exception.BadRequestException;
 import com.sport_pro_be.exception.ResourceNotFoundException;
@@ -194,3 +194,4 @@ public class CategoryServiceImpl implements ICategoryService {
                 .build();
     }
 }
+

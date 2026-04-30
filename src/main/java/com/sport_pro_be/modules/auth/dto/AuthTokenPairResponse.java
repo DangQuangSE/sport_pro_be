@@ -1,4 +1,4 @@
-package com.sport_pro_be.auth.dto;
+﻿package com.sport_pro_be.modules.auth.dto;
 
 public record AuthTokenPairResponse(
         String tokenType,
@@ -8,3 +8,4 @@ public record AuthTokenPairResponse(
         String refreshToken
 ) {
 }
+

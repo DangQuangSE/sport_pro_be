@@ -1,10 +1,10 @@
-package com.sport_pro_be.auth.forgotpassword.controller;
+﻿package com.sport_pro_be.modules.auth.forgotpassword.controller;
 
-import com.sport_pro_be.auth.forgotpassword.dto.ForgotPasswordRequest;
-import com.sport_pro_be.auth.forgotpassword.dto.ForgotPasswordTokenResponse;
-import com.sport_pro_be.auth.forgotpassword.dto.ResetPasswordRequest;
-import com.sport_pro_be.auth.forgotpassword.dto.VerifyForgotPasswordOtpRequest;
-import com.sport_pro_be.auth.forgotpassword.interfaces.IForgotPasswordService;
+import com.sport_pro_be.modules.auth.forgotpassword.dto.ForgotPasswordRequest;
+import com.sport_pro_be.modules.auth.forgotpassword.dto.ForgotPasswordTokenResponse;
+import com.sport_pro_be.modules.auth.forgotpassword.dto.ResetPasswordRequest;
+import com.sport_pro_be.modules.auth.forgotpassword.dto.VerifyForgotPasswordOtpRequest;
+import com.sport_pro_be.modules.auth.forgotpassword.interfaces.IForgotPasswordService;
 import com.sport_pro_be.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,3 +38,4 @@ public class ForgotPasswordController {
         return ApiResponse.of(message, null);
     }
 }
+

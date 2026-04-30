@@ -1,6 +1,6 @@
-package com.sport_pro_be.auth.repository;
+﻿package com.sport_pro_be.modules.auth.repository;
 
-import com.sport_pro_be.auth.domain.RefreshToken;
+import com.sport_pro_be.modules.auth.domain.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,3 +17,4 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     @Query("update RefreshToken r set r.revoked = true, r.revokedAt = :revokedAt where r.user.id = :userId and r.revoked = false")
     int revokeActiveByUserId(@Param("userId") Long userId, @Param("revokedAt") LocalDateTime revokedAt);
 }
+

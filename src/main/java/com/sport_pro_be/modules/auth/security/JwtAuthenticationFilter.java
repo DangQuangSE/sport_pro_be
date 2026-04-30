@@ -1,8 +1,8 @@
-package com.sport_pro_be.auth.security;
+﻿package com.sport_pro_be.modules.auth.security;
 
-import com.sport_pro_be.auth.domain.User;
-import com.sport_pro_be.auth.interfaces.IJwtService;
-import com.sport_pro_be.auth.repository.UserRepository;
+import com.sport_pro_be.modules.auth.domain.User;
+import com.sport_pro_be.modules.auth.interfaces.IJwtService;
+import com.sport_pro_be.modules.auth.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -69,3 +69,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
+

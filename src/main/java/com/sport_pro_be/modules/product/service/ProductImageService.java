@@ -1,16 +1,16 @@
-﻿package com.sport_pro_be.product.service;
+﻿package com.sport_pro_be.modules.product.service;
 
 import com.sport_pro_be.exception.ResourceNotFoundException;
-import com.sport_pro_be.product.constant.ProductMessageConstant;
-import com.sport_pro_be.product.domain.Product;
-import com.sport_pro_be.product.domain.ProductImage;
-import com.sport_pro_be.product.domain.ProductVariant;
-import com.sport_pro_be.product.dto.request.ProductImageRequest;
-import com.sport_pro_be.product.dto.response.ProductImageResponse;
-import com.sport_pro_be.product.interfaces.IProductImageService;
-import com.sport_pro_be.product.repository.ProductImageRepository;
-import com.sport_pro_be.product.repository.ProductRepository;
-import com.sport_pro_be.product.repository.ProductVariantRepository;
+import com.sport_pro_be.modules.product.constant.ProductMessageConstant;
+import com.sport_pro_be.modules.product.domain.Product;
+import com.sport_pro_be.modules.product.domain.ProductImage;
+import com.sport_pro_be.modules.product.domain.ProductVariant;
+import com.sport_pro_be.modules.product.dto.request.ProductImageRequest;
+import com.sport_pro_be.modules.product.dto.response.ProductImageResponse;
+import com.sport_pro_be.modules.product.interfaces.IProductImageService;
+import com.sport_pro_be.modules.product.repository.ProductImageRepository;
+import com.sport_pro_be.modules.product.repository.ProductRepository;
+import com.sport_pro_be.modules.product.repository.ProductVariantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,4 +61,5 @@ public class ProductImageService implements IProductImageService {
         productImageRepository.delete(productImage);
     }
 }
+
 

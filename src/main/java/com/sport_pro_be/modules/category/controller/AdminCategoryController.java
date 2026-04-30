@@ -1,9 +1,9 @@
-package com.sport_pro_be.category.controller;
+﻿package com.sport_pro_be.modules.category.controller;
 
-import com.sport_pro_be.category.constant.CategoryConstant;
-import com.sport_pro_be.category.dto.CategoryRequest;
-import com.sport_pro_be.category.dto.CategoryResponse;
-import com.sport_pro_be.category.service.ICategoryService;
+import com.sport_pro_be.modules.category.constant.CategoryConstant;
+import com.sport_pro_be.modules.category.dto.CategoryRequest;
+import com.sport_pro_be.modules.category.dto.CategoryResponse;
+import com.sport_pro_be.modules.category.service.ICategoryService;
 import com.sport_pro_be.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,3 +40,4 @@ public class AdminCategoryController {
         return ApiResponse.of(CategoryConstant.UPDATE_STATUS_SUCCESS, null);
     }
 }
+

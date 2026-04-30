@@ -1,20 +1,20 @@
-﻿package com.sport_pro_be.product.controller;
+﻿package com.sport_pro_be.modules.product.controller;
 
 import com.sport_pro_be.common.ApiResponse;
-import com.sport_pro_be.product.enums.Gender;
-import com.sport_pro_be.product.constant.ProductMessageConstant;
-import com.sport_pro_be.product.enums.ProductStatus;
-import com.sport_pro_be.product.dto.request.ProductCreateRequest;
-import com.sport_pro_be.product.dto.request.ProductImageRequest;
-import com.sport_pro_be.product.dto.request.ProductUpdateRequest;
-import com.sport_pro_be.product.dto.request.ProductVariantRequest;
-import com.sport_pro_be.product.dto.response.ProductDetailResponse;
-import com.sport_pro_be.product.dto.response.ProductImageResponse;
-import com.sport_pro_be.product.dto.response.ProductListResponse;
-import com.sport_pro_be.product.dto.response.ProductVariantResponse;
-import com.sport_pro_be.product.interfaces.IProductImageService;
-import com.sport_pro_be.product.interfaces.IProductService;
-import com.sport_pro_be.product.interfaces.IProductVariantService;
+import com.sport_pro_be.modules.product.enums.Gender;
+import com.sport_pro_be.modules.product.constant.ProductMessageConstant;
+import com.sport_pro_be.modules.product.enums.ProductStatus;
+import com.sport_pro_be.modules.product.dto.request.ProductCreateRequest;
+import com.sport_pro_be.modules.product.dto.request.ProductImageRequest;
+import com.sport_pro_be.modules.product.dto.request.ProductUpdateRequest;
+import com.sport_pro_be.modules.product.dto.request.ProductVariantRequest;
+import com.sport_pro_be.modules.product.dto.response.ProductDetailResponse;
+import com.sport_pro_be.modules.product.dto.response.ProductImageResponse;
+import com.sport_pro_be.modules.product.dto.response.ProductListResponse;
+import com.sport_pro_be.modules.product.dto.response.ProductVariantResponse;
+import com.sport_pro_be.modules.product.interfaces.IProductImageService;
+import com.sport_pro_be.modules.product.interfaces.IProductService;
+import com.sport_pro_be.modules.product.interfaces.IProductVariantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -82,4 +82,5 @@ public class AdminProductController {
         return ApiResponse.of(ProductMessageConstant.IMAGE_ADDED, productImageService.addImage(productId, request));
     }
 }
+
 

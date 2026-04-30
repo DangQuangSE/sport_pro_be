@@ -1,6 +1,6 @@
-﻿package com.sport_pro_be.product.dto.request;
+﻿package com.sport_pro_be.modules.product.dto.request;
 
-import com.sport_pro_be.product.constant.ProductMessageConstant;
+import com.sport_pro_be.modules.product.constant.ProductMessageConstant;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,4 +17,5 @@ public class ProductImageRequest {
     
     private Long variantId;
 }
+
 

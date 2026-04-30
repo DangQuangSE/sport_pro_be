@@ -1,7 +1,7 @@
-﻿package com.sport_pro_be.product.dto.request;
+﻿package com.sport_pro_be.modules.product.dto.request;
 
-import com.sport_pro_be.product.enums.Gender;
-import com.sport_pro_be.product.constant.ProductMessageConstant;
+import com.sport_pro_be.modules.product.enums.Gender;
+import com.sport_pro_be.modules.product.constant.ProductMessageConstant;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -24,4 +24,5 @@ public class ProductCreateRequest {
     @NotNull(message = ProductMessageConstant.GENDER_REQUIRED)
     private Gender gender;
 }
+
 

@@ -1,6 +1,6 @@
-package com.sport_pro_be.auth.domain;
+﻿package com.sport_pro_be.modules.auth.domain;
 
-import com.sport_pro_be.auth.enums.OtpType;
+import com.sport_pro_be.modules.auth.enums.OtpType;
 import com.sport_pro_be.common.AbstractAuditingEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -40,3 +40,4 @@ public class OtpVerification extends AbstractAuditingEntity {
     @Column(nullable = false)
     private boolean otpVerified = false;
 }
+

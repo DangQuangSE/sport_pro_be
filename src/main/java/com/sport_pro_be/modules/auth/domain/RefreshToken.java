@@ -1,4 +1,4 @@
-package com.sport_pro_be.auth.domain;
+﻿package com.sport_pro_be.modules.auth.domain;
 
 import com.sport_pro_be.common.AbstractAuditingEntity;
 import jakarta.persistence.*;
@@ -35,3 +35,4 @@ public class RefreshToken extends AbstractAuditingEntity {
     @Column(length = 128)
     private String replacedByTokenHash;
 }
+

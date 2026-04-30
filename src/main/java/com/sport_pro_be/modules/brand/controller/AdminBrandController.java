@@ -1,9 +1,9 @@
-package com.sport_pro_be.brand.controller;
+﻿package com.sport_pro_be.modules.brand.controller;
 
-import com.sport_pro_be.brand.constant.BrandConstant;
-import com.sport_pro_be.brand.dto.BrandRequest;
-import com.sport_pro_be.brand.dto.BrandResponse;
-import com.sport_pro_be.brand.service.IBrandService;
+import com.sport_pro_be.modules.brand.constant.BrandConstant;
+import com.sport_pro_be.modules.brand.dto.BrandRequest;
+import com.sport_pro_be.modules.brand.dto.BrandResponse;
+import com.sport_pro_be.modules.brand.service.IBrandService;
 import com.sport_pro_be.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,3 +40,4 @@ public class AdminBrandController {
         return ApiResponse.of(BrandConstant.UPDATE_STATUS_SUCCESS, null);
     }
 }
+

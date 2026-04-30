@@ -1,12 +1,12 @@
-package com.sport_pro_be.auth.controller;
+﻿package com.sport_pro_be.modules.auth.controller;
 
-import com.sport_pro_be.auth.dto.AuthTokenPairResponse;
-import com.sport_pro_be.auth.dto.LoginRequest;
-import com.sport_pro_be.auth.dto.LoginSuccessResponse;
-import com.sport_pro_be.auth.dto.OtpVerifyRequest;
-import com.sport_pro_be.auth.dto.RegisterRequest;
-import com.sport_pro_be.auth.dto.ResendOtpRequest;
-import com.sport_pro_be.auth.interfaces.IAuthService;
+import com.sport_pro_be.modules.auth.dto.AuthTokenPairResponse;
+import com.sport_pro_be.modules.auth.dto.LoginRequest;
+import com.sport_pro_be.modules.auth.dto.LoginSuccessResponse;
+import com.sport_pro_be.modules.auth.dto.OtpVerifyRequest;
+import com.sport_pro_be.modules.auth.dto.RegisterRequest;
+import com.sport_pro_be.modules.auth.dto.ResendOtpRequest;
+import com.sport_pro_be.modules.auth.interfaces.IAuthService;
 import com.sport_pro_be.common.ApiResponse;
 import com.sport_pro_be.config.AuthProperties;
 import jakarta.servlet.http.Cookie;
@@ -133,3 +133,4 @@ public class AuthController {
                 .build();
     }
 }
+
