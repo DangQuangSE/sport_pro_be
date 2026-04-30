@@ -1,15 +1,15 @@
-﻿package com.sport_pro_be.product.service;
+﻿package com.sport_pro_be.modules.product.service;
 
 import com.sport_pro_be.exception.ConflictException;
 import com.sport_pro_be.exception.ResourceNotFoundException;
-import com.sport_pro_be.product.constant.ProductMessageConstant;
-import com.sport_pro_be.product.domain.Product;
-import com.sport_pro_be.product.domain.ProductVariant;
-import com.sport_pro_be.product.dto.request.ProductVariantRequest;
-import com.sport_pro_be.product.dto.response.ProductVariantResponse;
-import com.sport_pro_be.product.interfaces.IProductVariantService;
-import com.sport_pro_be.product.repository.ProductRepository;
-import com.sport_pro_be.product.repository.ProductVariantRepository;
+import com.sport_pro_be.modules.product.constant.ProductMessageConstant;
+import com.sport_pro_be.modules.product.domain.Product;
+import com.sport_pro_be.modules.product.domain.ProductVariant;
+import com.sport_pro_be.modules.product.dto.request.ProductVariantRequest;
+import com.sport_pro_be.modules.product.dto.response.ProductVariantResponse;
+import com.sport_pro_be.modules.product.interfaces.IProductVariantService;
+import com.sport_pro_be.modules.product.repository.ProductRepository;
+import com.sport_pro_be.modules.product.repository.ProductVariantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,4 +89,5 @@ public class ProductVariantService implements IProductVariantService {
                 .build();
     }
 }
+
 

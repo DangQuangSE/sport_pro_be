@@ -1,11 +1,11 @@
-﻿package com.sport_pro_be.product.interfaces;
+﻿package com.sport_pro_be.modules.product.interfaces;
 
-import com.sport_pro_be.product.enums.Gender;
-import com.sport_pro_be.product.enums.ProductStatus;
-import com.sport_pro_be.product.dto.request.ProductCreateRequest;
-import com.sport_pro_be.product.dto.request.ProductUpdateRequest;
-import com.sport_pro_be.product.dto.response.ProductDetailResponse;
-import com.sport_pro_be.product.dto.response.ProductListResponse;
+import com.sport_pro_be.modules.product.enums.Gender;
+import com.sport_pro_be.modules.product.enums.ProductStatus;
+import com.sport_pro_be.modules.product.dto.request.ProductCreateRequest;
+import com.sport_pro_be.modules.product.dto.request.ProductUpdateRequest;
+import com.sport_pro_be.modules.product.dto.response.ProductDetailResponse;
+import com.sport_pro_be.modules.product.dto.response.ProductListResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,4 +19,5 @@ public interface IProductService {
     ProductDetailResponse getProductById(Long id);
     ProductDetailResponse getProductBySlug(String slug);
 }
+
 

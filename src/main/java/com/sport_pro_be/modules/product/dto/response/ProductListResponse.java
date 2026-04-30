@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.product.dto.response;
+﻿package com.sport_pro_be.modules.product.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -22,4 +22,5 @@ public class ProductListResponse {
     private List<String> availableSizes;
     private List<String> availableColors;
 }
+
 

@@ -1,4 +1,4 @@
-package com.sport_pro_be.category.dto;
+﻿package com.sport_pro_be.modules.category.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -15,3 +15,4 @@ public class CategoryTreeResponse {
     private Integer displayOrder;
     private List<CategoryTreeResponse> children;
 }
+

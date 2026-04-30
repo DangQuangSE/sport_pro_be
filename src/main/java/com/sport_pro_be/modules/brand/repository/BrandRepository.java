@@ -1,6 +1,6 @@
-package com.sport_pro_be.brand.repository;
+﻿package com.sport_pro_be.modules.brand.repository;
 
-import com.sport_pro_be.brand.domain.Brand;
+import com.sport_pro_be.modules.brand.domain.Brand;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,3 +13,4 @@ public interface BrandRepository extends JpaRepository<Brand, Long> {
     org.springframework.data.domain.Page<Brand> findAllByNameContainingIgnoreCaseAndIsActiveTrue(String name, org.springframework.data.domain.Pageable pageable);
     org.springframework.data.domain.Page<Brand> findAllByIsActiveTrue(org.springframework.data.domain.Pageable pageable);
 }
+

@@ -1,8 +1,8 @@
-package com.sport_pro_be.brand.controller;
+﻿package com.sport_pro_be.modules.brand.controller;
 
-import com.sport_pro_be.brand.constant.BrandConstant;
-import com.sport_pro_be.brand.dto.BrandResponse;
-import com.sport_pro_be.brand.service.IBrandService;
+import com.sport_pro_be.modules.brand.constant.BrandConstant;
+import com.sport_pro_be.modules.brand.dto.BrandResponse;
+import com.sport_pro_be.modules.brand.service.IBrandService;
 import com.sport_pro_be.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,3 +29,4 @@ public class BrandController {
         return ApiResponse.of(BrandConstant.GET_BRAND_DETAIL_SUCCESS, brandService.getBrandBySlug(slug));
     }
 }
+

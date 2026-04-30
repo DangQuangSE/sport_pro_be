@@ -1,6 +1,6 @@
-package com.sport_pro_be.brand.dto;
+﻿package com.sport_pro_be.modules.brand.dto;
 
-import com.sport_pro_be.brand.constant.BrandConstant;
+import com.sport_pro_be.modules.brand.constant.BrandConstant;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -17,3 +17,4 @@ public class BrandRequest {
     private String websiteUrl;
     private Boolean isActive;
 }
+

@@ -1,4 +1,4 @@
-package com.sport_pro_be.category.constant;
+﻿package com.sport_pro_be.modules.category.constant;
 
 public class CategoryConstant {
     private CategoryConstant() {
@@ -24,3 +24,4 @@ public class CategoryConstant {
     public static final String NAME_CANNOT_BE_BLANK = "Category name cannot be blank";
     public static final String NAME_SIZE = "Category name must be between 2 and 100 characters";
 }
+

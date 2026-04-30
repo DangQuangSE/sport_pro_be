@@ -1,6 +1,6 @@
-package com.sport_pro_be.auth.domain;
+﻿package com.sport_pro_be.modules.auth.domain;
 
-import com.sport_pro_be.auth.enums.Role;
+import com.sport_pro_be.modules.auth.enums.Role;
 import com.sport_pro_be.common.AbstractAuditingEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -32,3 +32,4 @@ public class User extends AbstractAuditingEntity {
     @Column(nullable = false)
     private Integer tokenVersion = 1;
 }
+

@@ -1,9 +1,9 @@
-package com.sport_pro_be.auth.interfaces;
+﻿package com.sport_pro_be.modules.auth.interfaces;
 
-import com.sport_pro_be.auth.dto.AuthTokenPairResponse;
-import com.sport_pro_be.auth.dto.LoginRequest;
-import com.sport_pro_be.auth.dto.OtpVerifyRequest;
-import com.sport_pro_be.auth.dto.RegisterRequest;
+import com.sport_pro_be.modules.auth.dto.AuthTokenPairResponse;
+import com.sport_pro_be.modules.auth.dto.LoginRequest;
+import com.sport_pro_be.modules.auth.dto.OtpVerifyRequest;
+import com.sport_pro_be.modules.auth.dto.RegisterRequest;
 
 public interface IAuthService {
     void requestRegistrationOtp(String email);
@@ -14,3 +14,4 @@ public interface IAuthService {
     void verifyOtp(OtpVerifyRequest request);
     void resendOtp(String email);
 }
+

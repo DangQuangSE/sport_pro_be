@@ -1,10 +1,10 @@
-package com.sport_pro_be.brand.service;
+﻿package com.sport_pro_be.modules.brand.service;
 
-import com.sport_pro_be.brand.constant.BrandConstant;
-import com.sport_pro_be.brand.domain.Brand;
-import com.sport_pro_be.brand.dto.BrandRequest;
-import com.sport_pro_be.brand.dto.BrandResponse;
-import com.sport_pro_be.brand.repository.BrandRepository;
+import com.sport_pro_be.modules.brand.constant.BrandConstant;
+import com.sport_pro_be.modules.brand.domain.Brand;
+import com.sport_pro_be.modules.brand.dto.BrandRequest;
+import com.sport_pro_be.modules.brand.dto.BrandResponse;
+import com.sport_pro_be.modules.brand.repository.BrandRepository;
 import com.sport_pro_be.common.SlugUtils;
 import com.sport_pro_be.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -131,3 +131,4 @@ public class BrandService implements IBrandService {
                 .build();
     }
 }
+

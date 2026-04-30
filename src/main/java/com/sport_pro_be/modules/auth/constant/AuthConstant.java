@@ -1,4 +1,4 @@
-package com.sport_pro_be.auth.constant;
+﻿package com.sport_pro_be.modules.auth.constant;
 
 public class AuthConstant {
     private AuthConstant() {
@@ -49,3 +49,4 @@ public class AuthConstant {
     public static final int OTP_MAX_ATTEMPTS = 5;
     public static final String SHA_256_NOT_AVAILABLE = "SHA-256 algorithm is not available";
 }
+

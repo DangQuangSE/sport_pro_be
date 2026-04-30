@@ -1,4 +1,4 @@
-package com.sport_pro_be.brand.dto;
+﻿package com.sport_pro_be.modules.brand.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -19,3 +19,4 @@ public class BrandResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+

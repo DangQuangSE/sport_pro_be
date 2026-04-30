@@ -1,8 +1,8 @@
-package com.sport_pro_be.category.service;
+﻿package com.sport_pro_be.modules.category.service;
 
-import com.sport_pro_be.category.dto.CategoryRequest;
-import com.sport_pro_be.category.dto.CategoryResponse;
-import com.sport_pro_be.category.dto.CategoryTreeResponse;
+import com.sport_pro_be.modules.category.dto.CategoryRequest;
+import com.sport_pro_be.modules.category.dto.CategoryResponse;
+import com.sport_pro_be.modules.category.dto.CategoryTreeResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -17,3 +17,4 @@ public interface ICategoryService {
     Page<CategoryResponse> getCategories(Pageable pageable, String search);
     void updateStatus(Long id, boolean isActive);
 }
+

@@ -1,6 +1,6 @@
-package com.sport_pro_be.category.dto;
+﻿package com.sport_pro_be.modules.category.dto;
 
-import com.sport_pro_be.category.constant.CategoryConstant;
+import com.sport_pro_be.modules.category.constant.CategoryConstant;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -17,3 +17,4 @@ public class CategoryRequest {
     private Integer displayOrder;
     private Boolean isActive;
 }
+

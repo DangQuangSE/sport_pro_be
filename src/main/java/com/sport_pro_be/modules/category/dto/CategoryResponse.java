@@ -1,4 +1,4 @@
-package com.sport_pro_be.category.dto;
+﻿package com.sport_pro_be.modules.category.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -19,3 +19,4 @@ public class CategoryResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+

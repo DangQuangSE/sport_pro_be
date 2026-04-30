@@ -1,6 +1,6 @@
-package com.sport_pro_be.auth.interfaces;
+﻿package com.sport_pro_be.modules.auth.interfaces;
 
-import com.sport_pro_be.auth.domain.User;
+import com.sport_pro_be.modules.auth.domain.User;
 
 public interface IJwtService {
 
@@ -18,3 +18,4 @@ public interface IJwtService {
 
     Integer extractTokenVersionFromAccessToken(String token);
 }
+

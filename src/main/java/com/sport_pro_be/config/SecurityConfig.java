@@ -1,8 +1,8 @@
 package com.sport_pro_be.config;
 
-import com.sport_pro_be.auth.security.CustomAccessDeniedHandler;
-import com.sport_pro_be.auth.security.JwtAuthenticationEntryPoint;
-import com.sport_pro_be.auth.security.JwtAuthenticationFilter;
+import com.sport_pro_be.modules.auth.security.CustomAccessDeniedHandler;
+import com.sport_pro_be.modules.auth.security.JwtAuthenticationEntryPoint;
+import com.sport_pro_be.modules.auth.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +32,8 @@ public class SecurityConfig {
             "/v3/api-docs.yaml",
             "/api/auth/**",
             "/api/categories/**",
-            "/api/brands/**"
+            "/api/brands/**",
+            "/api/products/**"
     };
 
     private static final String[] ADMIN_URLS = {
@@ -66,3 +67,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
+

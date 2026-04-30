@@ -1,4 +1,4 @@
-package com.sport_pro_be.auth.dto;
+﻿package com.sport_pro_be.modules.auth.dto;
 
 public record LoginSuccessResponse(
         String tokenType,
@@ -7,3 +7,4 @@ public record LoginSuccessResponse(
         String email
 ) {
 }
+

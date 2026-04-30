@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.product.domain;
+﻿package com.sport_pro_be.modules.product.domain;
 
 import com.sport_pro_be.common.AbstractAuditingEntity;
 import jakarta.persistence.*;
@@ -36,4 +36,5 @@ public class ProductImage extends AbstractAuditingEntity {
     @Builder.Default
     private Integer sortOrder = 0;
 }
+
 

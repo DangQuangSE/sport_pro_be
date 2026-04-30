@@ -1,6 +1,6 @@
-﻿package com.sport_pro_be.product.dto.response;
+﻿package com.sport_pro_be.modules.product.dto.response;
 
-import com.sport_pro_be.product.enums.Gender;
+import com.sport_pro_be.modules.product.enums.Gender;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,4 +21,5 @@ public class ProductDetailResponse {
     private List<ProductImageResponse> images;
     private List<ProductVariantResponse> variants;
 }
+
 

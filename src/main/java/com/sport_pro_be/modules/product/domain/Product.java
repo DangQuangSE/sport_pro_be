@@ -1,10 +1,10 @@
-﻿package com.sport_pro_be.product.domain;
+﻿package com.sport_pro_be.modules.product.domain;
 
-import com.sport_pro_be.brand.domain.Brand;
-import com.sport_pro_be.category.domain.Category;
+import com.sport_pro_be.modules.brand.domain.Brand;
+import com.sport_pro_be.modules.category.domain.Category;
 import com.sport_pro_be.common.AbstractAuditingEntity;
-import com.sport_pro_be.product.enums.Gender;
-import com.sport_pro_be.product.enums.ProductStatus;
+import com.sport_pro_be.modules.product.enums.Gender;
+import com.sport_pro_be.modules.product.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -62,4 +62,5 @@ public class Product extends AbstractAuditingEntity {
     @Builder.Default
     private List<ProductImage> images = new ArrayList<>();
 }
+
 

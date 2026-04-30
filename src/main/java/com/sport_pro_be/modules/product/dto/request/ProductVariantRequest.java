@@ -1,7 +1,7 @@
-﻿package com.sport_pro_be.product.dto.request;
+﻿package com.sport_pro_be.modules.product.dto.request;
 
-import com.sport_pro_be.product.constant.ProductMessageConstant;
-import com.sport_pro_be.product.enums.ProductStatus;
+import com.sport_pro_be.modules.product.constant.ProductMessageConstant;
+import com.sport_pro_be.modules.product.enums.ProductStatus;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -34,4 +34,5 @@ public class ProductVariantRequest {
 
     private ProductStatus status = ProductStatus.ACTIVE;
 }
+
 

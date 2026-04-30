@@ -1,6 +1,6 @@
-package com.sport_pro_be.auth.forgotpassword.dto;
+﻿package com.sport_pro_be.modules.auth.forgotpassword.dto;
 
-import com.sport_pro_be.auth.constant.AuthConstant;
+import com.sport_pro_be.modules.auth.constant.AuthConstant;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -10,3 +10,4 @@ public record ForgotPasswordRequest(
         String email
 ) {
 }
+

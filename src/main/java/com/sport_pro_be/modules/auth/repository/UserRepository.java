@@ -1,6 +1,6 @@
-package com.sport_pro_be.auth.repository;
+﻿package com.sport_pro_be.modules.auth.repository;
 
-import com.sport_pro_be.auth.domain.User;
+import com.sport_pro_be.modules.auth.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -11,3 +11,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmailIgnoreCase(String email);
 }
+

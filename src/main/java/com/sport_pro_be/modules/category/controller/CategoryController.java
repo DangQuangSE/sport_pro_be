@@ -1,9 +1,9 @@
-package com.sport_pro_be.category.controller;
+﻿package com.sport_pro_be.modules.category.controller;
 
-import com.sport_pro_be.category.constant.CategoryConstant;
-import com.sport_pro_be.category.dto.CategoryResponse;
-import com.sport_pro_be.category.dto.CategoryTreeResponse;
-import com.sport_pro_be.category.service.ICategoryService;
+import com.sport_pro_be.modules.category.constant.CategoryConstant;
+import com.sport_pro_be.modules.category.dto.CategoryResponse;
+import com.sport_pro_be.modules.category.dto.CategoryTreeResponse;
+import com.sport_pro_be.modules.category.service.ICategoryService;
 import com.sport_pro_be.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,3 +37,4 @@ public class CategoryController {
         return ApiResponse.of(CategoryConstant.GET_CATEGORY_DETAIL_SUCCESS, categoryService.getCategoryBySlug(slug));
     }
 }
+

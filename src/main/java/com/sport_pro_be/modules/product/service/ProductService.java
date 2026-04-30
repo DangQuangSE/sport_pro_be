@@ -1,26 +1,26 @@
-﻿package com.sport_pro_be.product.service;
+﻿package com.sport_pro_be.modules.product.service;
 
-import com.sport_pro_be.brand.domain.Brand;
-import com.sport_pro_be.brand.repository.BrandRepository;
-import com.sport_pro_be.category.domain.Category;
-import com.sport_pro_be.category.repository.CategoryRepository;
+import com.sport_pro_be.modules.brand.domain.Brand;
+import com.sport_pro_be.modules.brand.repository.BrandRepository;
+import com.sport_pro_be.modules.category.domain.Category;
+import com.sport_pro_be.modules.category.repository.CategoryRepository;
 import com.sport_pro_be.common.SlugUtils;
 import com.sport_pro_be.exception.ResourceNotFoundException;
-import com.sport_pro_be.product.enums.Gender;
-import com.sport_pro_be.product.constant.ProductMessageConstant;
-import com.sport_pro_be.product.enums.ProductStatus;
-import com.sport_pro_be.product.domain.Product;
-import com.sport_pro_be.product.domain.ProductImage;
-import com.sport_pro_be.product.domain.ProductVariant;
-import com.sport_pro_be.product.dto.request.ProductCreateRequest;
-import com.sport_pro_be.product.dto.request.ProductUpdateRequest;
-import com.sport_pro_be.product.dto.response.ProductDetailResponse;
-import com.sport_pro_be.product.dto.response.ProductImageResponse;
-import com.sport_pro_be.product.dto.response.ProductListResponse;
-import com.sport_pro_be.product.dto.response.ProductVariantResponse;
-import com.sport_pro_be.product.interfaces.IProductService;
-import com.sport_pro_be.product.repository.ProductRepository;
-import com.sport_pro_be.product.repository.ProductSpecification;
+import com.sport_pro_be.modules.product.enums.Gender;
+import com.sport_pro_be.modules.product.constant.ProductMessageConstant;
+import com.sport_pro_be.modules.product.enums.ProductStatus;
+import com.sport_pro_be.modules.product.domain.Product;
+import com.sport_pro_be.modules.product.domain.ProductImage;
+import com.sport_pro_be.modules.product.domain.ProductVariant;
+import com.sport_pro_be.modules.product.dto.request.ProductCreateRequest;
+import com.sport_pro_be.modules.product.dto.request.ProductUpdateRequest;
+import com.sport_pro_be.modules.product.dto.response.ProductDetailResponse;
+import com.sport_pro_be.modules.product.dto.response.ProductImageResponse;
+import com.sport_pro_be.modules.product.dto.response.ProductListResponse;
+import com.sport_pro_be.modules.product.dto.response.ProductVariantResponse;
+import com.sport_pro_be.modules.product.interfaces.IProductService;
+import com.sport_pro_be.modules.product.repository.ProductRepository;
+import com.sport_pro_be.modules.product.repository.ProductSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -211,3 +211,4 @@ public class ProductService implements IProductService {
                                 .build();
         }
 }
+
