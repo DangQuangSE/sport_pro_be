@@ -1,6 +1,7 @@
-package com.sport_pro_be.product.controller;
+﻿package com.sport_pro_be.product.controller;
 
 import com.sport_pro_be.common.ApiResponse;
+import com.sport_pro_be.product.constant.ProductMessageConstant;
 import com.sport_pro_be.product.dto.request.ProductVariantRequest;
 import com.sport_pro_be.product.dto.response.ProductVariantResponse;
 import com.sport_pro_be.product.interfaces.IProductVariantService;
@@ -19,12 +20,13 @@ public class AdminProductVariantController {
     
     @PutMapping("/{variantId}")
     public ApiResponse<ProductVariantResponse> updateVariant(@PathVariable Long variantId, @Valid @RequestBody ProductVariantRequest request) {
-        return ApiResponse.of("Variant updated successfully", productVariantService.updateVariant(variantId, request));
+        return ApiResponse.of(ProductMessageConstant.VARIANT_UPDATED, productVariantService.updateVariant(variantId, request));
     }
 
     @DeleteMapping("/{variantId}")
     public ApiResponse<Void> deleteVariant(@PathVariable Long variantId) {
         productVariantService.deleteVariant(variantId);
-        return ApiResponse.of("Variant deleted successfully", null);
+        return ApiResponse.of(ProductMessageConstant.VARIANT_DELETED, null);
     }
 }
+

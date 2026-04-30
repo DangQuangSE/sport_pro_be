@@ -1,7 +1,7 @@
-package com.sport_pro_be.product.repository;
+﻿package com.sport_pro_be.product.repository;
 
-import com.sport_pro_be.product.constant.Gender;
-import com.sport_pro_be.product.constant.ProductStatus;
+import com.sport_pro_be.product.enums.Gender;
+import com.sport_pro_be.product.enums.ProductStatus;
 import com.sport_pro_be.product.domain.Product;
 import com.sport_pro_be.product.domain.ProductVariant;
 import jakarta.persistence.criteria.Join;
@@ -70,3 +70,4 @@ public class ProductSpecification {
         };
     }
 }
+

@@ -1,5 +1,6 @@
-package com.sport_pro_be.product.dto.request;
+﻿package com.sport_pro_be.product.dto.request;
 
+import com.sport_pro_be.product.constant.ProductMessageConstant;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ProductImageRequest {
-    @NotBlank(message = "Image URL is required")
+    @NotBlank(message = ProductMessageConstant.IMAGE_URL_REQUIRED)
     private String imageUrl;
     
     private Boolean isThumbnail = false;
@@ -16,3 +17,4 @@ public class ProductImageRequest {
     
     private Long variantId;
 }
+

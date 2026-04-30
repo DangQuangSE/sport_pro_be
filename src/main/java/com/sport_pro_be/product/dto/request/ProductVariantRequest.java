@@ -1,6 +1,7 @@
-package com.sport_pro_be.product.dto.request;
+﻿package com.sport_pro_be.product.dto.request;
 
-import com.sport_pro_be.product.constant.ProductStatus;
+import com.sport_pro_be.product.constant.ProductMessageConstant;
+import com.sport_pro_be.product.enums.ProductStatus;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,23 +14,24 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class ProductVariantRequest {
-    @NotBlank(message = "SKU is required")
+    @NotBlank(message = ProductMessageConstant.SKU_REQUIRED)
     private String sku;
 
-    @NotBlank(message = "Size is required")
+    @NotBlank(message = ProductMessageConstant.SIZE_REQUIRED)
     private String size;
 
-    @NotBlank(message = "Color is required")
+    @NotBlank(message = ProductMessageConstant.COLOR_REQUIRED)
     private String color;
 
-    @Positive(message = "Price must be greater than 0")
-    @NotNull(message = "Price is required")
+    @Positive(message = ProductMessageConstant.PRICE_POSITIVE)
+    @NotNull(message = ProductMessageConstant.PRICE_REQUIRED)
     private BigDecimal price;
 
     private BigDecimal salePrice;
 
-    @Min(value = 0, message = "Stock quantity cannot be negative")
+    @Min(value = 0, message = ProductMessageConstant.STOCK_NON_NEGATIVE)
     private Integer stockQuantity = 0;
 
     private ProductStatus status = ProductStatus.ACTIVE;
 }
+

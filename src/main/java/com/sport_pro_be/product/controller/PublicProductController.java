@@ -1,8 +1,9 @@
-package com.sport_pro_be.product.controller;
+﻿package com.sport_pro_be.product.controller;
 
 import com.sport_pro_be.common.ApiResponse;
-import com.sport_pro_be.product.constant.Gender;
-import com.sport_pro_be.product.constant.ProductStatus;
+import com.sport_pro_be.product.enums.Gender;
+import com.sport_pro_be.product.constant.ProductMessageConstant;
+import com.sport_pro_be.product.enums.ProductStatus;
 import com.sport_pro_be.product.dto.response.ProductDetailResponse;
 import com.sport_pro_be.product.dto.response.ProductListResponse;
 import com.sport_pro_be.product.interfaces.IProductService;
@@ -33,11 +34,12 @@ public class PublicProductController {
         
         // Force status to ACTIVE for public API
         Page<ProductListResponse> products = productService.getProducts(categoryId, brandId, gender, size, color, minPrice, maxPrice, ProductStatus.ACTIVE, pageable);
-        return ApiResponse.of("Success", products);
+        return ApiResponse.of(ProductMessageConstant.SUCCESS, products);
     }
 
     @GetMapping("/{slug}")
     public ApiResponse<ProductDetailResponse> getProductBySlug(@PathVariable String slug) {
-        return ApiResponse.of("Success", productService.getProductBySlug(slug));
+        return ApiResponse.of(ProductMessageConstant.SUCCESS, productService.getProductBySlug(slug));
     }
 }
+

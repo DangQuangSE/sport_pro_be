@@ -1,4 +1,4 @@
-package com.sport_pro_be.product.repository;
+﻿package com.sport_pro_be.product.repository;
 
 import com.sport_pro_be.product.domain.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,3 +12,4 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     Optional<Product> findBySlug(String slug);
     boolean existsBySlug(String slug);
 }
+

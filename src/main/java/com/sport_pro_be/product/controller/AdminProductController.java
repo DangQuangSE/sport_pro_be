@@ -1,8 +1,9 @@
-package com.sport_pro_be.product.controller;
+﻿package com.sport_pro_be.product.controller;
 
 import com.sport_pro_be.common.ApiResponse;
-import com.sport_pro_be.product.constant.Gender;
-import com.sport_pro_be.product.constant.ProductStatus;
+import com.sport_pro_be.product.enums.Gender;
+import com.sport_pro_be.product.constant.ProductMessageConstant;
+import com.sport_pro_be.product.enums.ProductStatus;
 import com.sport_pro_be.product.dto.request.ProductCreateRequest;
 import com.sport_pro_be.product.dto.request.ProductImageRequest;
 import com.sport_pro_be.product.dto.request.ProductUpdateRequest;
@@ -45,39 +46,40 @@ public class AdminProductController {
             @RequestParam(required = false) ProductStatus status,
             Pageable pageable) {
         Page<ProductListResponse> products = productService.getProducts(categoryId, brandId, gender, size, color, minPrice, maxPrice, status, pageable);
-        return ApiResponse.of("Success", products);
+        return ApiResponse.of(ProductMessageConstant.SUCCESS, products);
     }
 
     @GetMapping("/{id}")
     public ApiResponse<ProductDetailResponse> getProduct(@PathVariable Long id) {
-        return ApiResponse.of("Success", productService.getProductById(id));
+        return ApiResponse.of(ProductMessageConstant.SUCCESS, productService.getProductById(id));
     }
 
     @PostMapping
     public ApiResponse<ProductDetailResponse> createProduct(@Valid @RequestBody ProductCreateRequest request) {
-        return ApiResponse.of("Product created successfully", productService.createProduct(request));
+        return ApiResponse.of(ProductMessageConstant.PRODUCT_CREATED, productService.createProduct(request));
     }
 
     @PutMapping("/{id}")
     public ApiResponse<ProductDetailResponse> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductUpdateRequest request) {
-        return ApiResponse.of("Product updated successfully", productService.updateProduct(id, request));
+        return ApiResponse.of(ProductMessageConstant.PRODUCT_UPDATED, productService.updateProduct(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
-        return ApiResponse.of("Product deleted successfully", null);
+        return ApiResponse.of(ProductMessageConstant.PRODUCT_DELETED, null);
     }
 
     // Variants
     @PostMapping("/{productId}/variants")
     public ApiResponse<ProductVariantResponse> createVariant(@PathVariable Long productId, @Valid @RequestBody ProductVariantRequest request) {
-        return ApiResponse.of("Variant created successfully", productVariantService.createVariant(productId, request));
+        return ApiResponse.of(ProductMessageConstant.VARIANT_CREATED, productVariantService.createVariant(productId, request));
     }
 
     // Images
     @PostMapping("/{productId}/images")
     public ApiResponse<ProductImageResponse> addImage(@PathVariable Long productId, @Valid @RequestBody ProductImageRequest request) {
-        return ApiResponse.of("Image added successfully", productImageService.addImage(productId, request));
+        return ApiResponse.of(ProductMessageConstant.IMAGE_ADDED, productImageService.addImage(productId, request));
     }
 }
+
