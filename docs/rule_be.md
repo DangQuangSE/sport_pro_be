@@ -8,6 +8,7 @@ Là một lập trình viên Backend Senior, dưới đây là những bộ quy 
 - **Tên mang ý nghĩa (Meaningful Names):** Đặt tên biến, hàm, class thể hiện rõ chức năng. KHÔNG dùng từ viết tắt tối nghĩa (VD: dùng `userRepository` thay vì `ur`).
 - **Hàm nhỏ và đơn nhiệm (Single Responsibility):** Một hàm chỉ nên làm **một việc duy nhất**. Nếu hàm dài hơn 30-50 dòng, hãy cân nhắc tách hàm.
 - **Tránh Magic Numbers/Strings:** Sử dụng `constant` (hằng số) hoặc `enum` thay vì hardcode số hoặc chuỗi trực tiếp trong code.
+- **Tránh hardcode trong message** Sử dụng `constant` để định nghĩa tất cả các lỗi bằng tiếng Anh (không throw thẳng lỗi)
 - **Quy tắc trinh sát (Boy Scout Rule):** Luôn để lại code sạch hơn so với lúc bạn tìm thấy nó.
 
 ## 2. Kiến trúc & Thiết kế (Architecture & Design)
