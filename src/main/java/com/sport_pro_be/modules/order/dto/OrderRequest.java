@@ -16,8 +16,9 @@ public class OrderRequest {
     @Pattern(regexp = "^(0|\\+84)[0-9]{9,10}$", message = "Invalid phone number format")
     private String phoneNumber;
 
-    @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;
+
+    private String couponCode;
 
     private java.util.List<Long> cartItemIds;
 }
