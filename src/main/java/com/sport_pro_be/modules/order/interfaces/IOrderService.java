@@ -4,6 +4,7 @@ import com.sport_pro_be.modules.order.dto.OrderRequest;
 import com.sport_pro_be.modules.order.dto.OrderResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.sport_pro_be.modules.order.enums.OrderStatus;
 
 public interface IOrderService {
     OrderResponse placeOrder(Long userId, OrderRequest request);
