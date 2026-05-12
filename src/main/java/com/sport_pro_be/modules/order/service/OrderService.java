@@ -40,6 +40,8 @@ public class OrderService implements IOrderService {
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final com.sport_pro_be.modules.coupon.service.CouponService couponService;
+    private final com.sport_pro_be.modules.membership.service.TierService tierService;
 
     @Override
     @Transactional
@@ -95,7 +97,7 @@ public class OrderService implements IOrderService {
             productVariantRepository.save(variant);
 
             // Determine price
-            BigDecimal itemPrice = variant.getSalePrice() != null ? variant.getSalePrice() : variant.getPrice();
+            BigDecimal itemPrice = variant.getSalePrice() != null ? variant.getSalePrice() : variant.getOriginalPrice();
             BigDecimal itemTotal = itemPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity()));
             totalAmount = totalAmount.add(itemTotal);
 
@@ -111,7 +113,17 @@ public class OrderService implements IOrderService {
 
         orderItemRepository.saveAll(orderItems);
 
-        order.setTotalAmount(totalAmount);
+        // Handle Coupon
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        if (request.getCouponCode() != null && !request.getCouponCode().isBlank()) {
+            com.sport_pro_be.modules.coupon.domain.Coupon coupon = couponService.validateAndGetCoupon(request.getCouponCode(), user, totalAmount);
+            discountAmount = couponService.calculateDiscount(coupon, totalAmount);
+            order.setCoupon(coupon);
+            coupon.setUsedCount(coupon.getUsedCount() + 1);
+        }
+
+        order.setDiscountAmount(discountAmount);
+        order.setTotalAmount(totalAmount.subtract(discountAmount));
         order.setItems(orderItems);
         orderRepository.save(order);
 
@@ -157,6 +169,13 @@ public class OrderService implements IOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(OrderMessageConstant.ORDER_NOT_FOUND));
         
+        if (status == OrderStatus.DELIVERED && order.getStatus() != OrderStatus.DELIVERED) {
+            User user = order.getUser();
+            user.setTotalSpending(user.getTotalSpending().add(order.getTotalAmount()));
+            tierService.updateUserTier(user);
+            userRepository.save(user);
+        }
+
         order.setStatus(status);
         orderRepository.save(order);
         
@@ -173,7 +192,7 @@ public class OrderService implements IOrderService {
                         .size(item.getProductVariant().getSize())
                         .color(item.getProductVariant().getColor())
                         .quantity(item.getQuantity())
-                        .price(item.getPrice())
+                        .price(item.getPrice()) // item.getPrice() stores the purchase price, it's correct
                         .build())
                 .collect(Collectors.toList());
 

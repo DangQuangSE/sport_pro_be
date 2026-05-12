@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.product.dto.response;
+package com.sport_pro_be.modules.product.dto.response;
 
 import com.sport_pro_be.modules.product.enums.ProductStatus;
 import lombok.Builder;
@@ -15,7 +15,7 @@ public class ProductVariantResponse {
     private String sku;
     private String size;
     private String color;
-    private BigDecimal price;
+    private BigDecimal originalPrice;
     private BigDecimal salePrice;
     private Integer stockQuantity;
     private ProductStatus status;
