@@ -19,6 +19,7 @@ import com.sport_pro_be.modules.order.repository.OrderItemRepository;
 import com.sport_pro_be.modules.order.repository.OrderRepository;
 import com.sport_pro_be.modules.product.domain.ProductVariant;
 import com.sport_pro_be.modules.product.repository.ProductVariantRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
