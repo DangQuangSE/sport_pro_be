@@ -52,4 +52,7 @@ public class Coupon extends AbstractAuditingEntity {
 
     @Builder.Default
     private boolean isActive = true;
+
+    @Builder.Default
+    private boolean isDeleted = false;
 }
