@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.category.dto;
+package com.sport_pro_be.modules.category.dto;
 
 import com.sport_pro_be.modules.category.constant.CategoryConstant;
 import jakarta.validation.constraints.NotBlank;

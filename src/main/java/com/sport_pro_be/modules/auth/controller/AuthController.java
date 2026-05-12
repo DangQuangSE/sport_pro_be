@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.controller;
+package com.sport_pro_be.modules.auth.controller;
 
 import com.sport_pro_be.modules.auth.dto.AuthTokenPairResponse;
 import com.sport_pro_be.modules.auth.dto.LoginRequest;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-import static com.sport_pro_be.auth.constant.AuthConstant.*;
+import static com.sport_pro_be.modules.auth.constant.AuthConstant.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -80,7 +80,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ApiResponse<Map<String, Object>> me(org.springframework.security.core.Authentication authentication) {
-        com.sport_pro_be.auth.domain.User user = (com.sport_pro_be.auth.domain.User) authentication.getPrincipal();
+        com.sport_pro_be.modules.auth.domain.User user = (com.sport_pro_be.modules.auth.domain.User) authentication.getPrincipal();
         Map<String, Object> data = Map.of(
                 "email", user.getEmail(),
                 "role", user.getRole().name(),

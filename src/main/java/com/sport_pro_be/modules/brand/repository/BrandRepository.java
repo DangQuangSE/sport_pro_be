@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.brand.repository;
+package com.sport_pro_be.modules.brand.repository;
 
 import com.sport_pro_be.modules.brand.domain.Brand;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.service;
+package com.sport_pro_be.modules.auth.service;
 
 import com.sport_pro_be.modules.auth.interfaces.IEmailService;
 import com.sport_pro_be.config.AuthProperties;

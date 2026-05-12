@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.service;
+package com.sport_pro_be.modules.auth.service;
 
 import com.sport_pro_be.modules.auth.domain.User;
 import com.sport_pro_be.modules.auth.interfaces.IJwtService;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 
-import static com.sport_pro_be.auth.constant.AuthConstant.APP_JWT_SECRET_INVALID;
+import static com.sport_pro_be.modules.auth.constant.AuthConstant.APP_JWT_SECRET_INVALID;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
