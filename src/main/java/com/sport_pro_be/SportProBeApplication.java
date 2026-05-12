@@ -15,7 +15,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class SportProBeApplication {
 
 	public static void main(String[] args) {
-			Dotenv dotenv = Dotenv.configure()
+		Dotenv dotenv = Dotenv.configure()
 				.ignoreIfMissing()
 				.load();
 		if (dotenv != null) {
@@ -36,6 +36,9 @@ public class SportProBeApplication {
 			setIfPresent("MAIL_PORT", dotenv.get("MAIL_PORT"));
 			setIfPresent("MAIL_SMTP_AUTH", dotenv.get("MAIL_SMTP_AUTH"));
 			setIfPresent("MAIL_SMTP_STARTTLS", dotenv.get("MAIL_SMTP_STARTTLS"));
+			setIfPresent("CLOUDINARY_CLOUD_NAME", dotenv.get("CLOUDINARY_CLOUD_NAME"));
+			setIfPresent("CLOUDINARY_API_KEY", dotenv.get("CLOUDINARY_API_KEY"));
+			setIfPresent("CLOUDINARY_API_SECRET", dotenv.get("CLOUDINARY_API_SECRET"));
 		}
 		SpringApplication.run(SportProBeApplication.class, args);
 	}
