@@ -12,6 +12,9 @@ Là một lập trình viên Backend Senior, dưới đây là những bộ quy 
 - **Quy tắc trinh sát (Boy Scout Rule):** Luôn để lại code sạch hơn so với lúc bạn tìm thấy nó.
 
 ## 2. Kiến trúc & Thiết kế (Architecture & Design)
+- **Cấu trúc thư mục (Package Structure)**: Tuân thủ mô hình Modular Monolith. Mỗi module phải chứa đầy đủ: `controller`, `service`, `repository`, `domain`, `dto`, `enums`, `constant` và `exception` (nếu cần).
+- **Quản lý thông báo (Message Management)**: KHÔNG ĐƯỢC hardcode chuỗi ký tự thông báo trong Controller hoặc Service. Tất cả các thông báo (thành công, lỗi, exception) phải được định nghĩa trong class hằng số đặt tại folder `constant` của chính module đó. Ví dụ: `modules/coupon/constant/CouponMessageConstant.java`.
+- **Xử lý ngoại lệ (Exception Handling)**: Sử dụng Custom Exception và trả về cấu trúc `ApiResponse` chuẩn.
 - **Cấu trúc Package Chuẩn (Package Structure):** Để tránh lộn xộn, mỗi module phải tuân thủ nghiêm ngặt cấu trúc:
   - `interfaces`: Chứa TẤT CẢ các Interface (VD: `IProductService.java`). Không dùng từ khóa `interface` làm tên package vì lỗi cú pháp Java.
   - `enums`: Dành riêng cho các kiểu dữ liệu Enum (VD: `Gender.java`, `ProductStatus.java`). Tuyệt đối KHÔNG gộp chung enum vào thư mục `constant`.

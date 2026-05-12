@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.product.service;
+package com.sport_pro_be.modules.product.service;
 
 import com.sport_pro_be.modules.brand.domain.Brand;
 import com.sport_pro_be.modules.brand.repository.BrandRepository;
@@ -145,10 +145,10 @@ public class ProductService implements IProductService {
 
         private ProductListResponse mapToListResponse(Product product) {
                 BigDecimal minPrice = product.getVariants().stream()
-                                .map(ProductVariant::getPrice)
+                                .map(v -> v.getSalePrice() != null ? v.getSalePrice() : v.getOriginalPrice())
                                 .min(BigDecimal::compareTo).orElse(null);
                 BigDecimal maxPrice = product.getVariants().stream()
-                                .map(ProductVariant::getPrice)
+                                .map(v -> v.getSalePrice() != null ? v.getSalePrice() : v.getOriginalPrice())
                                 .max(BigDecimal::compareTo).orElse(null);
 
                 List<String> sizes = product.getVariants().stream()
@@ -191,7 +191,7 @@ public class ProductService implements IProductService {
                                                 .sku(v.getSku())
                                                 .size(v.getSize())
                                                 .color(v.getColor())
-                                                .price(v.getPrice())
+                                                .originalPrice(v.getOriginalPrice())
                                                 .salePrice(v.getSalePrice())
                                                 .stockQuantity(v.getStockQuantity())
                                                 .status(v.getStatus())

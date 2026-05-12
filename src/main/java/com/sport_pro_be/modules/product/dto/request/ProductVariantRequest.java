@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.product.dto.request;
+package com.sport_pro_be.modules.product.dto.request;
 
 import com.sport_pro_be.modules.product.constant.ProductMessageConstant;
 import com.sport_pro_be.modules.product.enums.ProductStatus;
@@ -25,7 +25,7 @@ public class ProductVariantRequest {
 
     @Positive(message = ProductMessageConstant.PRICE_POSITIVE)
     @NotNull(message = ProductMessageConstant.PRICE_REQUIRED)
-    private BigDecimal price;
+    private BigDecimal originalPrice;
 
     private BigDecimal salePrice;
 
