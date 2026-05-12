@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.product.service;
+package com.sport_pro_be.modules.product.service;
 
 import com.sport_pro_be.exception.ConflictException;
 import com.sport_pro_be.exception.ResourceNotFoundException;
@@ -36,7 +36,7 @@ public class ProductVariantService implements IProductVariantService {
                 .sku(request.getSku())
                 .size(request.getSize())
                 .color(request.getColor())
-                .price(request.getPrice())
+                .originalPrice(request.getOriginalPrice())
                 .salePrice(request.getSalePrice())
                 .stockQuantity(request.getStockQuantity())
                 .status(request.getStatus())
@@ -59,7 +59,7 @@ public class ProductVariantService implements IProductVariantService {
         variant.setSku(request.getSku());
         variant.setSize(request.getSize());
         variant.setColor(request.getColor());
-        variant.setPrice(request.getPrice());
+        variant.setOriginalPrice(request.getOriginalPrice());
         variant.setSalePrice(request.getSalePrice());
         variant.setStockQuantity(request.getStockQuantity());
         variant.setStatus(request.getStatus());
@@ -82,7 +82,7 @@ public class ProductVariantService implements IProductVariantService {
                 .sku(v.getSku())
                 .size(v.getSize())
                 .color(v.getColor())
-                .price(v.getPrice())
+                .originalPrice(v.getOriginalPrice())
                 .salePrice(v.getSalePrice())
                 .stockQuantity(v.getStockQuantity())
                 .status(v.getStatus())

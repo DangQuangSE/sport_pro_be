@@ -1,10 +1,13 @@
-﻿package com.sport_pro_be.modules.auth.domain;
+package com.sport_pro_be.modules.auth.domain;
 
 import com.sport_pro_be.modules.auth.enums.Role;
+import com.sport_pro_be.modules.auth.enums.UserTier;
 import com.sport_pro_be.common.AbstractAuditingEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -31,5 +34,12 @@ public class User extends AbstractAuditingEntity {
 
     @Column(nullable = false)
     private Integer tokenVersion = 1;
+
+    @Column(name = "total_spending", precision = 15, scale = 2)
+    private BigDecimal totalSpending = BigDecimal.ZERO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UserTier tier = UserTier.BRONZE;
 }
 

@@ -112,7 +112,7 @@ public class CartService implements ICartService {
 
         for (CartItem item : cart.getItems()) {
             ProductVariant variant = item.getProductVariant();
-            BigDecimal activePrice = variant.getSalePrice() != null ? variant.getSalePrice() : variant.getPrice();
+            BigDecimal activePrice = variant.getSalePrice() != null ? variant.getSalePrice() : variant.getOriginalPrice();
             BigDecimal itemTotal = activePrice.multiply(BigDecimal.valueOf(item.getQuantity()));
 
             totalAmount = totalAmount.add(itemTotal);
@@ -125,7 +125,7 @@ public class CartService implements ICartService {
                     .productSlug(variant.getProduct().getSlug())
                     .size(variant.getSize())
                     .color(variant.getColor())
-                    .price(variant.getPrice())
+                    .originalPrice(variant.getOriginalPrice())
                     .salePrice(variant.getSalePrice())
                     .quantity(item.getQuantity())
                     .itemTotal(itemTotal)
