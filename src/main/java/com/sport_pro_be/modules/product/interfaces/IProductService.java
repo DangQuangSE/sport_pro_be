@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.product.interfaces;
+package com.sport_pro_be.modules.product.interfaces;
 
 import com.sport_pro_be.modules.product.enums.Gender;
 import com.sport_pro_be.modules.product.enums.ProductStatus;

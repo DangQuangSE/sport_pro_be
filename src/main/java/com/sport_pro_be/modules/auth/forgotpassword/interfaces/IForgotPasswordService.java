@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.forgotpassword.interfaces;
+package com.sport_pro_be.modules.auth.forgotpassword.interfaces;
 
 import com.sport_pro_be.modules.auth.forgotpassword.dto.ForgotPasswordRequest;
 import com.sport_pro_be.modules.auth.forgotpassword.dto.ForgotPasswordTokenResponse;

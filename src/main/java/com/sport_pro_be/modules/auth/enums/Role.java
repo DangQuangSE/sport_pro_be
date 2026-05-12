@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.enums;
+package com.sport_pro_be.modules.auth.enums;
 
 public enum Role {
     USER,

@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.forgotpassword.dto;
+package com.sport_pro_be.modules.auth.forgotpassword.dto;
 
 import com.sport_pro_be.modules.auth.constant.AuthConstant;
 import jakarta.validation.constraints.Email;

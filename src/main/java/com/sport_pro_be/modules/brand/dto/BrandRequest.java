@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.brand.dto;
+package com.sport_pro_be.modules.brand.dto;
 
 import com.sport_pro_be.modules.brand.constant.BrandConstant;
 import jakarta.validation.constraints.NotBlank;

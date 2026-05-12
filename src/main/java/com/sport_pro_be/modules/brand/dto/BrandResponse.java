@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.brand.dto;
+package com.sport_pro_be.modules.brand.dto;
 
 import lombok.Builder;
 import lombok.Data;

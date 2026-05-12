@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.product.constant;
+package com.sport_pro_be.modules.product.constant;
 
 public class ProductMessageConstant {
     private ProductMessageConstant() {}

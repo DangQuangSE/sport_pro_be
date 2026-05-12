@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.service;
+package com.sport_pro_be.modules.auth.service;
 
 import com.sport_pro_be.modules.auth.domain.OtpVerification;
 import com.sport_pro_be.modules.auth.domain.RefreshToken;
@@ -29,7 +29,7 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.Locale;
 
-import static com.sport_pro_be.auth.constant.AuthConstant.*;
+import static com.sport_pro_be.modules.auth.constant.AuthConstant.*;
 
 @Service
 @RequiredArgsConstructor

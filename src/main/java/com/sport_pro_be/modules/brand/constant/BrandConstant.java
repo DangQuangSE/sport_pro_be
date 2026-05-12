@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.brand.constant;
+package com.sport_pro_be.modules.brand.constant;
 
 public class BrandConstant {
     private BrandConstant() {
