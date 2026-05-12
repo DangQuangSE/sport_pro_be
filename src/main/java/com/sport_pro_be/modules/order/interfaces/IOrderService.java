@@ -9,4 +9,7 @@ public interface IOrderService {
     OrderResponse placeOrder(Long userId, OrderRequest request);
     Page<OrderResponse> getUserOrders(Long userId, Pageable pageable);
     OrderResponse getOrderDetails(Long userId, Long orderId);
+    Page<OrderResponse> getAllOrders(Pageable pageable);
+    OrderResponse getOrderDetailsAdmin(Long orderId);
+    OrderResponse updateOrderStatus(Long orderId, OrderStatus status);
 }

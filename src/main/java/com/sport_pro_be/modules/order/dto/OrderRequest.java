@@ -18,4 +18,6 @@ public class OrderRequest {
 
     @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;
+
+    private java.util.List<Long> cartItemIds;
 }

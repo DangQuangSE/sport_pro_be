@@ -55,6 +55,19 @@ public class OrderService implements IOrderService {
             throw new BadRequestException(OrderMessageConstant.CART_EMPTY);
         }
 
+        List<CartItem> itemsToOrder;
+        if (request.getCartItemIds() != null && !request.getCartItemIds().isEmpty()) {
+            itemsToOrder = cart.getItems().stream()
+                    .filter(item -> request.getCartItemIds().contains(item.getId()))
+                    .collect(Collectors.toList());
+            
+            if (itemsToOrder.isEmpty()) {
+                throw new BadRequestException(OrderMessageConstant.INVALID_SELECTED_ITEMS);
+            }
+        } else {
+            itemsToOrder = new ArrayList<>(cart.getItems());
+        }
+
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
 
@@ -69,7 +82,7 @@ public class OrderService implements IOrderService {
         // Must save order first to satisfy foreign key for OrderItem
         order = orderRepository.save(order);
 
-        for (CartItem cartItem : cart.getItems()) {
+        for (CartItem cartItem : itemsToOrder) {
             ProductVariant variant = cartItem.getProductVariant();
 
             if (variant.getStockQuantity() < cartItem.getQuantity()) {
@@ -102,8 +115,8 @@ public class OrderService implements IOrderService {
         order.setItems(orderItems);
         orderRepository.save(order);
 
-        // Clear cart
-        cart.getItems().clear();
+        // Clear only ordered items from cart
+        cart.getItems().removeAll(itemsToOrder);
         cartRepository.save(cart);
 
         return mapToOrderResponse(order);
@@ -121,6 +134,32 @@ public class OrderService implements IOrderService {
     public OrderResponse getOrderDetails(Long userId, Long orderId) {
         Order order = orderRepository.findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException(OrderMessageConstant.ORDER_NOT_FOUND));
+        return mapToOrderResponse(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<OrderResponse> getAllOrders(Pageable pageable) {
+        return orderRepository.findAll(pageable).map(this::mapToOrderResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getOrderDetailsAdmin(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException(OrderMessageConstant.ORDER_NOT_FOUND));
+        return mapToOrderResponse(order);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse updateOrderStatus(Long orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException(OrderMessageConstant.ORDER_NOT_FOUND));
+        
+        order.setStatus(status);
+        orderRepository.save(order);
+        
         return mapToOrderResponse(order);
     }
 
