@@ -40,8 +40,8 @@ public class OrderService implements IOrderService {
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
     private final ProductVariantRepository productVariantRepository;
-    private final com.sport_pro_be.modules.coupon.service.CouponService couponService;
-    private final com.sport_pro_be.modules.membership.service.TierService tierService;
+    private final com.sport_pro_be.modules.coupon.interfaces.ICouponService couponService;
+    private final com.sport_pro_be.modules.membership.interfaces.ITierService tierService;
 
     @Override
     @Transactional

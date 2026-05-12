@@ -8,5 +8,9 @@ import java.util.Optional;
 
 @Repository
 public interface CouponRepository extends JpaRepository<Coupon, Long> {
-    Optional<Coupon> findByCodeAndIsActiveTrue(String code);
+    Optional<Coupon> findByCodeAndIsActiveTrueAndIsDeletedFalse(String code);
+    
+    Page<Coupon> findAllByIsDeletedFalse(org.springframework.data.domain.Pageable pageable);
+    
+    java.util.Optional<Coupon> findByIdAndIsDeletedFalse(Long id);
 }
