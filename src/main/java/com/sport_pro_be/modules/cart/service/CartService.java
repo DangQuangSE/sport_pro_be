@@ -13,6 +13,8 @@ import com.sport_pro_be.modules.cart.dto.response.CartItemResponse;
 import com.sport_pro_be.modules.cart.dto.response.CartResponse;
 import com.sport_pro_be.modules.cart.interfaces.ICartService;
 import com.sport_pro_be.modules.cart.repository.CartRepository;
+import com.sport_pro_be.modules.custom_design.domain.CustomDesign;
+import com.sport_pro_be.modules.custom_design.interfaces.ICustomDesignService;
 import com.sport_pro_be.modules.product.domain.ProductVariant;
 import com.sport_pro_be.modules.product.enums.ProductStatus;
 import com.sport_pro_be.modules.product.repository.ProductVariantRepository;
@@ -32,6 +34,7 @@ public class CartService implements ICartService {
     private final CartRepository cartRepository;
     private final ProductVariantRepository productVariantRepository;
     private final UserRepository userRepository;
+    private final ICustomDesignService customDesignService;
 
     @Override
     @Transactional
@@ -52,8 +55,18 @@ public class CartService implements ICartService {
             throw new ResourceNotFoundException(CartMessageConstant.VARIANT_NOT_FOUND);
         }
 
+        // Resolve custom design (and verify ownership at the same time)
+        CustomDesign customDesign = null;
+        if (request.getCustomDesignId() != null) {
+            customDesign = customDesignService.findAndVerifyOwnership(userId, request.getCustomDesignId());
+        }
+
+        final CustomDesign resolvedDesign = customDesign;
+
+        // Find existing item that matches the same variant AND design combination
         Optional<CartItem> existingItemOpt = cart.getItems().stream()
-                .filter(item -> item.getProductVariant().getId().equals(request.getVariantId()))
+                .filter(item -> item.getProductVariant().getId().equals(request.getVariantId())
+                        && isSameDesign(item.getCustomDesign(), resolvedDesign))
                 .findFirst();
 
         int currentQuantity = existingItemOpt.map(CartItem::getQuantity).orElse(0);
@@ -73,6 +86,7 @@ public class CartService implements ICartService {
                         .cart(cart)
                         .productVariant(variant)
                         .quantity(newQuantity)
+                        .customDesign(resolvedDesign)
                         .build();
                 cart.getItems().add(newItem);
             }
@@ -113,12 +127,19 @@ public class CartService implements ICartService {
         for (CartItem item : cart.getItems()) {
             ProductVariant variant = item.getProductVariant();
             BigDecimal activePrice = variant.getSalePrice() != null ? variant.getSalePrice() : variant.getOriginalPrice();
-            BigDecimal itemTotal = activePrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+            BigDecimal itemProductTotal = activePrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+
+            // Add printing price if this item has a custom design
+            BigDecimal printingPrice = BigDecimal.ZERO;
+            if (item.getCustomDesign() != null) {
+                printingPrice = item.getCustomDesign().getTotalPrintingPrice();
+            }
+            BigDecimal itemTotal = itemProductTotal.add(printingPrice);
 
             totalAmount = totalAmount.add(itemTotal);
             totalItems += item.getQuantity();
 
-            itemResponses.add(CartItemResponse.builder()
+            CartItemResponse.CartItemResponseBuilder responseBuilder = CartItemResponse.builder()
                     .id(item.getId())
                     .variantId(variant.getId())
                     .productName(variant.getProduct().getName())
@@ -128,8 +149,16 @@ public class CartService implements ICartService {
                     .originalPrice(variant.getOriginalPrice())
                     .salePrice(variant.getSalePrice())
                     .quantity(item.getQuantity())
-                    .itemTotal(itemTotal)
-                    .build());
+                    .itemTotal(itemTotal);
+
+            if (item.getCustomDesign() != null) {
+                responseBuilder
+                        .customDesignId(item.getCustomDesign().getId())
+                        .designImageUrl(item.getCustomDesign().getDesignImageUrl())
+                        .printingPrice(printingPrice);
+            }
+
+            itemResponses.add(responseBuilder.build());
         }
 
         return CartResponse.builder()
@@ -138,5 +167,14 @@ public class CartService implements ICartService {
                 .totalAmount(totalAmount)
                 .totalItems(totalItems)
                 .build();
+    }
+
+    /**
+     * Checks if two CustomDesign references refer to the same design (both null or same ID).
+     */
+    private boolean isSameDesign(CustomDesign a, CustomDesign b) {
+        if (a == null && b == null) return true;
+        if (a == null || b == null) return false;
+        return a.getId().equals(b.getId());
     }
 }

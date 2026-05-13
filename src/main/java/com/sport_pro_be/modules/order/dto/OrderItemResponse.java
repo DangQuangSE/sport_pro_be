@@ -16,4 +16,9 @@ public class OrderItemResponse {
     private String color;
     private Integer quantity;
     private BigDecimal price;
+    // Custom design info (null if no design attached)
+    private Long customDesignId;
+    private String designImageUrl;
+    private BigDecimal printingPrice;
 }
+

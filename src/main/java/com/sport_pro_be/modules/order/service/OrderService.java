@@ -89,7 +89,7 @@ public class OrderService implements IOrderService {
             ProductVariant variant = cartItem.getProductVariant();
 
             if (variant.getStockQuantity() < cartItem.getQuantity()) {
-                throw new BadRequestException(String.format(OrderMessageConstant.INSUFFICIENT_STOCK, 
+                throw new BadRequestException(String.format(OrderMessageConstant.INSUFFICIENT_STOCK,
                         variant.getProduct().getName(), variant.getSize()));
             }
 
@@ -97,9 +97,14 @@ public class OrderService implements IOrderService {
             variant.setStockQuantity(variant.getStockQuantity() - cartItem.getQuantity());
             productVariantRepository.save(variant);
 
-            // Determine price
+            // Determine product price
             BigDecimal itemPrice = variant.getSalePrice() != null ? variant.getSalePrice() : variant.getOriginalPrice();
             BigDecimal itemTotal = itemPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+
+            // Add printing price if this item has a custom design (snapshot price stored in design)
+            if (cartItem.getCustomDesign() != null) {
+                itemTotal = itemTotal.add(cartItem.getCustomDesign().getTotalPrintingPrice());
+            }
             totalAmount = totalAmount.add(itemTotal);
 
             OrderItem orderItem = OrderItem.builder()
@@ -107,6 +112,7 @@ public class OrderService implements IOrderService {
                     .productVariant(variant)
                     .quantity(cartItem.getQuantity())
                     .price(itemPrice)
+                    .customDesign(cartItem.getCustomDesign())
                     .build();
 
             orderItems.add(orderItem);
@@ -185,16 +191,24 @@ public class OrderService implements IOrderService {
 
     private OrderResponse mapToOrderResponse(Order order) {
         List<OrderItemResponse> itemResponses = order.getItems().stream()
-                .map(item -> OrderItemResponse.builder()
-                        .id(item.getId())
-                        .productVariantId(item.getProductVariant().getId())
-                        .productName(item.getProductVariant().getProduct().getName())
-                        .sku(item.getProductVariant().getSku())
-                        .size(item.getProductVariant().getSize())
-                        .color(item.getProductVariant().getColor())
-                        .quantity(item.getQuantity())
-                        .price(item.getPrice()) // item.getPrice() stores the purchase price, it's correct
-                        .build())
+                .map(item -> {
+                    OrderItemResponse.OrderItemResponseBuilder builder = OrderItemResponse.builder()
+                            .id(item.getId())
+                            .productVariantId(item.getProductVariant().getId())
+                            .productName(item.getProductVariant().getProduct().getName())
+                            .sku(item.getProductVariant().getSku())
+                            .size(item.getProductVariant().getSize())
+                            .color(item.getProductVariant().getColor())
+                            .quantity(item.getQuantity())
+                            .price(item.getPrice());
+
+                    if (item.getCustomDesign() != null) {
+                        builder.customDesignId(item.getCustomDesign().getId())
+                               .designImageUrl(item.getCustomDesign().getDesignImageUrl())
+                               .printingPrice(item.getCustomDesign().getTotalPrintingPrice());
+                    }
+                    return builder.build();
+                })
                 .collect(Collectors.toList());
 
         return OrderResponse.builder()
