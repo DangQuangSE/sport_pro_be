@@ -37,5 +37,8 @@ public class OrderItem extends AbstractAuditingEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "custom_design_id")
-    private CustomDesign customDesign;
+    private com.sport_pro_be.modules.custom_design.domain.CustomDesign customDesign;
+
+    @OneToOne(mappedBy = "orderItem", fetch = FetchType.LAZY)
+    private com.sport_pro_be.modules.review.domain.ProductReview review;
 }
