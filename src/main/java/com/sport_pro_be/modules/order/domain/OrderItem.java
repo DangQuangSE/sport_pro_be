@@ -1,6 +1,7 @@
 package com.sport_pro_be.modules.order.domain;
 
 import com.sport_pro_be.common.AbstractAuditingEntity;
+import com.sport_pro_be.modules.custom_design.domain.CustomDesign;
 import com.sport_pro_be.modules.product.domain.ProductVariant;
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,4 +34,8 @@ public class OrderItem extends AbstractAuditingEntity {
 
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal price;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "custom_design_id")
+    private CustomDesign customDesign;
 }
