@@ -1,7 +1,6 @@
 package com.sport_pro_be.modules.order.domain;
 
 import com.sport_pro_be.common.AbstractAuditingEntity;
-import com.sport_pro_be.modules.custom_design.domain.CustomDesign;
 import com.sport_pro_be.modules.product.domain.ProductVariant;
 import jakarta.persistence.*;
 import lombok.*;

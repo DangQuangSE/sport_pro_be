@@ -14,4 +14,11 @@ public interface CustomDesignRepository extends JpaRepository<CustomDesign, Long
     Page<CustomDesign> findByUserId(Long userId, Pageable pageable);
 
     Optional<CustomDesign> findByIdAndUserId(Long id, Long userId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT new com.sport_pro_be.modules.analytics.dto.TrendingDesignResponse(cd.id, cd.designImageUrl, COUNT(oi)) " +
+           "FROM OrderItem oi " +
+           "JOIN oi.customDesign cd " +
+           "GROUP BY cd.id, cd.designImageUrl " +
+           "ORDER BY COUNT(oi) DESC")
+    java.util.List<com.sport_pro_be.modules.analytics.dto.TrendingDesignResponse> findTrendingDesigns(org.springframework.data.domain.Pageable pageable);
 }
