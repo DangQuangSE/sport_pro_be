@@ -4,6 +4,8 @@ import com.sport_pro_be.modules.brand.domain.Brand;
 import com.sport_pro_be.modules.brand.repository.BrandRepository;
 import com.sport_pro_be.modules.category.domain.Category;
 import com.sport_pro_be.modules.category.repository.CategoryRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import com.sport_pro_be.common.SlugUtils;
 import com.sport_pro_be.modules.audit.annotation.Loggable;
 import com.sport_pro_be.exception.ResourceNotFoundException;
@@ -44,6 +46,7 @@ public class ProductService implements IProductService {
         @Override
         @Transactional
         @Loggable(action = "CREATE_PRODUCT", module = "PRODUCT")
+        @CacheEvict(value = "products", allEntries = true)
         public ProductDetailResponse createProduct(ProductCreateRequest request) {
                 Category category = categoryRepository.findById(request.getCategoryId())
                                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -71,6 +74,7 @@ public class ProductService implements IProductService {
         @Override
         @Transactional
         @Loggable(action = "UPDATE_PRODUCT", module = "PRODUCT")
+        @CacheEvict(value = {"products", "product_details"}, allEntries = true)
         public ProductDetailResponse updateProduct(Long id, ProductUpdateRequest request) {
                 Product product = productRepository.findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -101,6 +105,7 @@ public class ProductService implements IProductService {
         @Override
         @Transactional
         @Loggable(action = "DELETE_PRODUCT", module = "PRODUCT")
+        @CacheEvict(value = {"products", "product_details"}, allEntries = true)
         public void deleteProduct(Long id) {
                 Product product = productRepository.findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -110,6 +115,7 @@ public class ProductService implements IProductService {
 
         @Override
         @Transactional(readOnly = true)
+        @Cacheable(value = "products", key = "{#categoryId, #brandId, #gender, #size, #color, #minPrice, #maxPrice, #status, #pageable.pageNumber, #pageable.pageSize}")
         public Page<ProductListResponse> getProducts(Long categoryId, Long brandId, Gender gender, String size,
                         String color, BigDecimal minPrice, BigDecimal maxPrice, ProductStatus status,
                         Pageable pageable) {
@@ -121,6 +127,7 @@ public class ProductService implements IProductService {
 
         @Override
         @Transactional(readOnly = true)
+        @Cacheable(value = "product_details", key = "#id")
         public ProductDetailResponse getProductById(Long id) {
                 Product product = productRepository.findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -130,6 +137,7 @@ public class ProductService implements IProductService {
 
         @Override
         @Transactional(readOnly = true)
+        @Cacheable(value = "product_details", key = "#slug")
         public ProductDetailResponse getProductBySlug(String slug) {
                 Product product = productRepository.findBySlug(slug)
                                 .orElseThrow(() -> new ResourceNotFoundException(
