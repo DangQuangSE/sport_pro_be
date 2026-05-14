@@ -39,6 +39,7 @@ public class ProductVariantService implements IProductVariantService {
                 .originalPrice(request.getOriginalPrice())
                 .salePrice(request.getSalePrice())
                 .stockQuantity(request.getStockQuantity())
+                .lowStockThreshold(request.getLowStockThreshold())
                 .status(request.getStatus())
                 .build();
 
@@ -62,6 +63,7 @@ public class ProductVariantService implements IProductVariantService {
         variant.setOriginalPrice(request.getOriginalPrice());
         variant.setSalePrice(request.getSalePrice());
         variant.setStockQuantity(request.getStockQuantity());
+        variant.setLowStockThreshold(request.getLowStockThreshold());
         variant.setStatus(request.getStatus());
 
         variant = productVariantRepository.save(variant);
@@ -85,6 +87,7 @@ public class ProductVariantService implements IProductVariantService {
                 .originalPrice(v.getOriginalPrice())
                 .salePrice(v.getSalePrice())
                 .stockQuantity(v.getStockQuantity())
+                .lowStockThreshold(v.getLowStockThreshold())
                 .status(v.getStatus())
                 .build();
     }

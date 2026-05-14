@@ -1,7 +1,8 @@
 package com.sport_pro_be.modules.product.constant;
 
 public class ProductMessageConstant {
-    private ProductMessageConstant() {}
+    private ProductMessageConstant() {
+    }
 
     // Validation messages
     public static final String NAME_REQUIRED = "Name is required";
@@ -16,6 +17,7 @@ public class ProductMessageConstant {
     public static final String PRICE_POSITIVE = "Price must be greater than 0";
     public static final String STOCK_NON_NEGATIVE = "Stock quantity cannot be negative";
     public static final String IMAGE_URL_REQUIRED = "Image URL is required";
+    public static final String LOW_STOCK_THRESHOLD_NON_NEGATIVE = "Low stock threshold cannot be negative";
 
     // Exception messages
     public static final String PRODUCT_NOT_FOUND = "Product not found";
@@ -36,5 +38,3 @@ public class ProductMessageConstant {
     public static final String IMAGE_ADDED = "Image added successfully";
     public static final String IMAGE_DELETED = "Image deleted successfully";
 }
-
-

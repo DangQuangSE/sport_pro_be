@@ -18,6 +18,7 @@ public class ProductVariantResponse {
     private BigDecimal originalPrice;
     private BigDecimal salePrice;
     private Integer stockQuantity;
+    private Integer lowStockThreshold;
     private ProductStatus status;
 }
 

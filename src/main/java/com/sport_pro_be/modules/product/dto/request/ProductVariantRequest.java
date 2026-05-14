@@ -32,7 +32,8 @@ public class ProductVariantRequest {
     @Min(value = 0, message = ProductMessageConstant.STOCK_NON_NEGATIVE)
     private Integer stockQuantity = 0;
 
+    @Min(value = 0, message = ProductMessageConstant.LOW_STOCK_THRESHOLD_NON_NEGATIVE)
+    private Integer lowStockThreshold = 5;
+
     private ProductStatus status = ProductStatus.ACTIVE;
 }
-
-
