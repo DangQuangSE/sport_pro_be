@@ -79,12 +79,13 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ApiResponse<Map<String, Object>> me(org.springframework.security.core.Authentication authentication) {
-        com.sport_pro_be.modules.auth.domain.User user = (com.sport_pro_be.modules.auth.domain.User) authentication.getPrincipal();
+    public ApiResponse<Map<String, Object>> me() {
+        User user = com.sport_pro_be.common.SecurityUtils.getCurrentUser();
         Map<String, Object> data = Map.of(
                 "email", user.getEmail(),
                 "role", user.getRole().name(),
-                "authorities", authentication.getAuthorities()
+                "tier", user.getTier().name(),
+                "totalSpending", user.getTotalSpending()
         );
         return ApiResponse.of(USER_DETAILS_RETRIEVED, data);
     }

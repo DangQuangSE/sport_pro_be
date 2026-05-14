@@ -1,7 +1,7 @@
 package com.sport_pro_be.modules.custom_design.controller;
 
 import com.sport_pro_be.common.ApiResponse;
-import com.sport_pro_be.modules.auth.domain.User;
+import com.sport_pro_be.common.SecurityUtils;
 import com.sport_pro_be.modules.custom_design.constant.CustomDesignMessageConstant;
 import com.sport_pro_be.modules.custom_design.dto.CustomDesignRequest;
 import com.sport_pro_be.modules.custom_design.dto.CustomDesignResponse;
@@ -15,7 +15,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,10 +32,9 @@ public class CustomDesignController {
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CustomDesignResponse>> saveDesign(
-            Authentication authentication,
             @RequestPart("file") MultipartFile file,
             @Valid @RequestPart("data") CustomDesignRequest request) {
-        Long userId = extractUserId(authentication);
+        Long userId = SecurityUtils.getCurrentUserId();
         CustomDesignResponse response = customDesignService.saveDesign(userId, file, request);
         return ResponseEntity.ok(ApiResponse.of(CustomDesignMessageConstant.DESIGN_SAVED_SUCCESS, response));
     }
@@ -47,9 +45,8 @@ public class CustomDesignController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<Page<CustomDesignResponse>>> getMyDesigns(
-            Authentication authentication,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Long userId = extractUserId(authentication);
+        Long userId = SecurityUtils.getCurrentUserId();
         Page<CustomDesignResponse> response = customDesignService.getMyDesigns(userId, pageable);
         return ResponseEntity.ok(ApiResponse.of(null, response));
     }
@@ -59,16 +56,9 @@ public class CustomDesignController {
      * Returns details of a specific design. Returns 404 if not found or does not belong to the user.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<CustomDesignResponse>> getDesignDetail(
-            Authentication authentication,
-            @PathVariable Long id) {
-        Long userId = extractUserId(authentication);
+    public ResponseEntity<ApiResponse<CustomDesignResponse>> getDesignDetail(@PathVariable Long id) {
+        Long userId = SecurityUtils.getCurrentUserId();
         CustomDesignResponse response = customDesignService.getDesignDetail(userId, id);
         return ResponseEntity.ok(ApiResponse.of(null, response));
-    }
-
-    private Long extractUserId(Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-        return user.getId();
     }
 }
