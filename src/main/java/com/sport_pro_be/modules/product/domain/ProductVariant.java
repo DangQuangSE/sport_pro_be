@@ -8,7 +8,14 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "product_variants")
+@Table(name = "product_variants", indexes = {
+        @Index(name = "idx_variant_product_id", columnList = "product_id"),
+        @Index(name = "idx_variant_size", columnList = "size"),
+        @Index(name = "idx_variant_color", columnList = "color"),
+        @Index(name = "idx_variant_price", columnList = "sale_price"),
+        @Index(name = "idx_variant_stock", columnList = "stock_quantity"),
+        @Index(name = "idx_variant_filter", columnList = "size, color, sale_price")
+})
 @Getter
 @Setter
 @NoArgsConstructor

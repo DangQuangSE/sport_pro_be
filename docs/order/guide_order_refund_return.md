@@ -39,12 +39,12 @@
 
 ### Bước 4: Tích hợp logic Hoàn tiền (Refund)
 - Nếu thanh toán qua PG (Stripe/VNPAY), gọi API hoàn tiền của họ.
-- Nếu thanh toán COD/Chuyển khoản, ghi nhận thông tin tài khoản để Admin chuyển tay.
+- Nếu thanh toán COD/Chuyển khoản, ghi nhận thông tin tài khoản để Admin chuyển tay(hiện tại hệ thống chỉ có tài khoản cá nhân của admin nên phải để admin tự chuyển và đổi trạng thái đơn hàng thủ công).
 
 ### Bước 5: Tạo Controller
 - `POST /api/v1/returns`: Khách hàng tạo yêu cầu.
 - `GET /api/v1/admin/returns`: Admin xem danh sách yêu cầu.
-- `PATCH /api/v1/admin/returns/{id}/status`: Admin cập nhật trạng thái.
+- `PATCH /api/v1/admin/returns/{id}/status`: Admin cập nhật trạng thái(xem lại api cập nhật trạng thái đơn hàng đã có sẵn, hãy xem xét có cần tạo 1 api mới không).
 
 ## 6. Pseudo-code / Code skeleton
 
