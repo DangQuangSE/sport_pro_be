@@ -30,7 +30,6 @@ public class AuditAspect {
 
     @Around("@annotation(loggable)")
     public Object audit(ProceedingJoinPoint joinPoint, Loggable loggable) throws Throwable {
-        long startTime = System.currentTimeMillis();
         Object result = null;
         String status = "SUCCESS";
         String errorMessage = null;
@@ -52,8 +51,9 @@ public class AuditAspect {
     }
 
     private void captureLog(ProceedingJoinPoint joinPoint, Loggable loggable, String status, String errorMessage) {
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-        
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+                .getRequest();
+
         User currentUser = null;
         try {
             currentUser = SecurityUtils.getCurrentUser();
@@ -92,17 +92,20 @@ public class AuditAspect {
     private String getPayload(ProceedingJoinPoint joinPoint) {
         try {
             Object[] args = joinPoint.getArgs();
-            if (args == null || args.length == 0) return null;
+            if (args == null || args.length == 0)
+                return null;
 
             Map<String, Object> params = new HashMap<>();
-            String[] parameterNames = ((org.aspectj.lang.reflect.MethodSignature) joinPoint.getSignature()).getParameterNames();
+            String[] parameterNames = ((org.aspectj.lang.reflect.MethodSignature) joinPoint.getSignature())
+                    .getParameterNames();
 
             for (int i = 0; i < args.length; i++) {
                 String key = parameterNames[i];
                 Object value = args[i];
 
                 // Simple masking for sensitive fields
-                if (key.toLowerCase().contains("password") || key.toLowerCase().contains("secret") || key.toLowerCase().contains("token")) {
+                if (key.toLowerCase().contains("password") || key.toLowerCase().contains("secret")
+                        || key.toLowerCase().contains("token")) {
                     value = "******";
                 }
                 params.put(key, value);
