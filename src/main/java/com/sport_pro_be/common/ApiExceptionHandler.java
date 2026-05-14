@@ -24,17 +24,14 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("message", ApiExceptionConstant.INVALID_REQUEST_DATA);
-        body.put("timestamp", Instant.now());
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationException(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
-        body.put("data", fieldErrors);
 
-        return ResponseEntity.badRequest().body(body);
+        return ResponseEntity.badRequest()
+                .body(new ApiResponse<>(ApiExceptionConstant.INVALID_REQUEST_DATA, fieldErrors, Instant.now()));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
