@@ -5,6 +5,7 @@ import com.sport_pro_be.modules.brand.repository.BrandRepository;
 import com.sport_pro_be.modules.category.domain.Category;
 import com.sport_pro_be.modules.category.repository.CategoryRepository;
 import com.sport_pro_be.common.SlugUtils;
+import com.sport_pro_be.modules.audit.annotation.Loggable;
 import com.sport_pro_be.exception.ResourceNotFoundException;
 import com.sport_pro_be.modules.product.enums.Gender;
 import com.sport_pro_be.modules.product.constant.ProductMessageConstant;
@@ -42,6 +43,7 @@ public class ProductService implements IProductService {
 
         @Override
         @Transactional
+        @Loggable(action = "CREATE_PRODUCT", module = "PRODUCT")
         public ProductDetailResponse createProduct(ProductCreateRequest request) {
                 Category category = categoryRepository.findById(request.getCategoryId())
                                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -68,6 +70,7 @@ public class ProductService implements IProductService {
 
         @Override
         @Transactional
+        @Loggable(action = "UPDATE_PRODUCT", module = "PRODUCT")
         public ProductDetailResponse updateProduct(Long id, ProductUpdateRequest request) {
                 Product product = productRepository.findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -97,6 +100,7 @@ public class ProductService implements IProductService {
 
         @Override
         @Transactional
+        @Loggable(action = "DELETE_PRODUCT", module = "PRODUCT")
         public void deleteProduct(Long id) {
                 Product product = productRepository.findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(

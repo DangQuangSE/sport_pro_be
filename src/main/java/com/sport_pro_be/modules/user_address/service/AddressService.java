@@ -3,6 +3,7 @@ package com.sport_pro_be.modules.user_address.service;
 import com.sport_pro_be.common.SecurityUtils;
 import com.sport_pro_be.exception.BadRequestException;
 import com.sport_pro_be.exception.ResourceNotFoundException;
+import com.sport_pro_be.modules.audit.annotation.Loggable;
 import com.sport_pro_be.modules.auth.domain.User;
 import com.sport_pro_be.modules.user_address.constant.AddressMessageConstant;
 import com.sport_pro_be.modules.user_address.domain.UserAddress;
@@ -26,6 +27,7 @@ public class AddressService implements IAddressService {
 
     @Override
     @Transactional
+    @Loggable(action = "CREATE_ADDRESS", module = "USER_ADDRESS")
     public AddressResponse createAddress(AddressRequest request) {
         User currentUser = SecurityUtils.getCurrentUser();
         
@@ -59,6 +61,7 @@ public class AddressService implements IAddressService {
 
     @Override
     @Transactional
+    @Loggable(action = "UPDATE_ADDRESS", module = "USER_ADDRESS")
     public AddressResponse updateAddress(Long id, AddressRequest request) {
         User currentUser = SecurityUtils.getCurrentUser();
         UserAddress address = addressRepository.findByIdAndUserId(id, currentUser.getId())
@@ -83,6 +86,7 @@ public class AddressService implements IAddressService {
 
     @Override
     @Transactional
+    @Loggable(action = "DELETE_ADDRESS", module = "USER_ADDRESS")
     public void deleteAddress(Long id) {
         User currentUser = SecurityUtils.getCurrentUser();
         UserAddress address = addressRepository.findByIdAndUserId(id, currentUser.getId())
@@ -113,6 +117,7 @@ public class AddressService implements IAddressService {
 
     @Override
     @Transactional
+    @Loggable(action = "SET_DEFAULT_ADDRESS", module = "USER_ADDRESS")
     public AddressResponse setDefaultAddress(Long id) {
         User currentUser = SecurityUtils.getCurrentUser();
         UserAddress address = addressRepository.findByIdAndUserId(id, currentUser.getId())

@@ -12,6 +12,7 @@ import com.sport_pro_be.modules.order.enums.OrderStatus;
 import com.sport_pro_be.modules.order.enums.ReturnStatus;
 import com.sport_pro_be.modules.order.interfaces.IReturnService;
 import com.sport_pro_be.modules.order.repository.OrderRepository;
+import com.sport_pro_be.modules.audit.annotation.Loggable;
 import com.sport_pro_be.modules.order.repository.OrderReturnRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,6 +29,7 @@ public class ReturnService implements IReturnService {
 
     @Override
     @Transactional
+    @Loggable(action = "REQUEST_RETURN", module = "ORDER_RETURN")
     public ReturnResponse requestReturn(Long userId, ReturnRequest request) {
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException(OrderMessageConstant.ORDER_NOT_FOUND));
@@ -65,6 +67,7 @@ public class ReturnService implements IReturnService {
 
     @Override
     @Transactional
+    @Loggable(action = "UPDATE_RETURN_STATUS", module = "ORDER_RETURN")
     public ReturnResponse updateReturnStatus(Long returnId, UpdateReturnStatusRequest request) {
         OrderReturn orderReturn = returnRepository.findById(returnId)
                 .orElseThrow(() -> new ResourceNotFoundException(OrderMessageConstant.RETURN_NOT_FOUND));
