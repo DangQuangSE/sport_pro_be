@@ -3,6 +3,7 @@ package com.sport_pro_be.modules.order.service;
 import com.sport_pro_be.modules.order.constant.OrderMessageConstant;
 import com.sport_pro_be.exception.BadRequestException;
 import com.sport_pro_be.exception.ResourceNotFoundException;
+import com.sport_pro_be.modules.audit.annotation.Loggable;
 import com.sport_pro_be.modules.auth.domain.User;
 import com.sport_pro_be.modules.auth.repository.UserRepository;
 import com.sport_pro_be.modules.cart.domain.Cart;
@@ -46,6 +47,7 @@ public class OrderService implements IOrderService {
 
     @Override
     @Transactional
+    @Loggable(action = "PLACE_ORDER", module = "ORDER")
     public OrderResponse placeOrder(Long userId, OrderRequest request) {
         log.info("Placing order for user id: {}", userId);
         User user = userRepository.findById(userId)
@@ -172,6 +174,7 @@ public class OrderService implements IOrderService {
 
     @Override
     @Transactional
+    @Loggable(action = "UPDATE_ORDER_STATUS", module = "ORDER")
     public OrderResponse updateOrderStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(OrderMessageConstant.ORDER_NOT_FOUND));
