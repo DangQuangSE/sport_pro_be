@@ -16,11 +16,18 @@ import java.util.List;
 public class ProductSpecification {
 
     public static Specification<Product> filterProducts(
-            Long categoryId, Long brandId, Gender gender, String size, String color,
+            String keyword, Long categoryId, Long brandId, Gender gender, String size, String color,
             BigDecimal minPrice, BigDecimal maxPrice, ProductStatus status) {
 
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            if (keyword != null && !keyword.isBlank()) {
+                String pattern = "%" + keyword.toLowerCase() + "%";
+                Predicate namePredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern);
+                Predicate descPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), pattern);
+                predicates.add(criteriaBuilder.or(namePredicate, descPredicate));
+            }
 
             if (status != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), status));

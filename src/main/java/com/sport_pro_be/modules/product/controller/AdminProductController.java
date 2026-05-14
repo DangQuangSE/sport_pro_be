@@ -37,6 +37,7 @@ public class AdminProductController {
 
     @GetMapping
     public ApiResponse<Page<ProductListResponse>> getProducts(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Long brandId,
             @RequestParam(required = false) Gender gender,
@@ -46,7 +47,7 @@ public class AdminProductController {
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) ProductStatus status,
             Pageable pageable) {
-        Page<ProductListResponse> products = productService.getProducts(categoryId, brandId, gender, size, color, minPrice, maxPrice, status, pageable);
+        Page<ProductListResponse> products = productService.getProducts(keyword, categoryId, brandId, gender, size, color, minPrice, maxPrice, status, pageable);
         return ApiResponse.of(ProductMessageConstant.SUCCESS, products);
     }
 

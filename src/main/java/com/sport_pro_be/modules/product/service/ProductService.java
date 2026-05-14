@@ -115,11 +115,11 @@ public class ProductService implements IProductService {
 
         @Override
         @Transactional(readOnly = true)
-        @Cacheable(value = "products", key = "{#categoryId, #brandId, #gender, #size, #color, #minPrice, #maxPrice, #status, #pageable.pageNumber, #pageable.pageSize}")
-        public Page<ProductListResponse> getProducts(Long categoryId, Long brandId, Gender gender, String size,
+        @Cacheable(value = "products", key = "{#keyword, #categoryId, #brandId, #gender, #size, #color, #minPrice, #maxPrice, #status, #pageable.pageNumber, #pageable.pageSize}")
+        public Page<ProductListResponse> getProducts(String keyword, Long categoryId, Long brandId, Gender gender, String size,
                         String color, BigDecimal minPrice, BigDecimal maxPrice, ProductStatus status,
                         Pageable pageable) {
-                Specification<Product> spec = ProductSpecification.filterProducts(categoryId, brandId, gender, size,
+                Specification<Product> spec = ProductSpecification.filterProducts(keyword, categoryId, brandId, gender, size,
                                 color, minPrice, maxPrice, status);
                 Page<Product> products = productRepository.findAll(spec, pageable);
                 return products.map(this::mapToListResponse);
