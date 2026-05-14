@@ -47,6 +47,13 @@ public class ProductVariant extends AbstractAuditingEntity {
     @Column(nullable = false, length = 20)
     @Builder.Default
     private ProductStatus status = ProductStatus.ACTIVE;
+
+    @Column(name = "low_stock_threshold")
+    @Builder.Default
+    private Integer lowStockThreshold = 5;
+
+    @Version
+    private Long version;
 }
 
 

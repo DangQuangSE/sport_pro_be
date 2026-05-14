@@ -14,6 +14,7 @@ import com.sport_pro_be.modules.order.dto.OrderItemResponse;
 import com.sport_pro_be.modules.order.dto.OrderRequest;
 import com.sport_pro_be.modules.order.dto.OrderResponse;
 import com.sport_pro_be.modules.order.enums.OrderStatus;
+import com.sport_pro_be.modules.inventory.interfaces.IInventoryService;
 import com.sport_pro_be.modules.order.interfaces.IOrderService;
 import com.sport_pro_be.modules.order.repository.OrderItemRepository;
 import com.sport_pro_be.modules.order.repository.OrderRepository;
@@ -41,6 +42,7 @@ public class OrderService implements IOrderService {
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final IInventoryService inventoryService;
     private final com.sport_pro_be.modules.coupon.interfaces.ICouponService couponService;
     private final com.sport_pro_be.modules.membership.interfaces.ITierService tierService;
 
@@ -88,14 +90,8 @@ public class OrderService implements IOrderService {
         for (CartItem cartItem : itemsToOrder) {
             ProductVariant variant = cartItem.getProductVariant();
 
-            if (variant.getStockQuantity() < cartItem.getQuantity()) {
-                throw new BadRequestException(String.format(OrderMessageConstant.INSUFFICIENT_STOCK,
-                        variant.getProduct().getName(), variant.getSize()));
-            }
-
-            // Deduct stock
-            variant.setStockQuantity(variant.getStockQuantity() - cartItem.getQuantity());
-            productVariantRepository.save(variant);
+            // Deduct stock — validation and optimistic lock conflict handled inside InventoryService
+            inventoryService.deductStock(variant.getId(), cartItem.getQuantity());
 
             // Determine product price
             BigDecimal itemPrice = variant.getSalePrice() != null ? variant.getSalePrice() : variant.getOriginalPrice();
@@ -175,7 +171,7 @@ public class OrderService implements IOrderService {
     public OrderResponse updateOrderStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(OrderMessageConstant.ORDER_NOT_FOUND));
-        
+
         if (status == OrderStatus.DELIVERED && order.getStatus() != OrderStatus.DELIVERED) {
             User user = order.getUser();
             user.setTotalSpending(user.getTotalSpending().add(order.getTotalAmount()));
@@ -183,9 +179,15 @@ public class OrderService implements IOrderService {
             userRepository.save(user);
         }
 
+        if (status == OrderStatus.CANCELLED && order.getStatus() != OrderStatus.CANCELLED) {
+            for (com.sport_pro_be.modules.order.domain.OrderItem item : order.getItems()) {
+                inventoryService.restoreStock(item.getProductVariant().getId(), item.getQuantity());
+            }
+        }
+
         order.setStatus(status);
         orderRepository.save(order);
-        
+
         return mapToOrderResponse(order);
     }
 
