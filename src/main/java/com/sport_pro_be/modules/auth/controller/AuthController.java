@@ -8,6 +8,7 @@ import com.sport_pro_be.modules.auth.dto.RegisterRequest;
 import com.sport_pro_be.modules.auth.dto.ResendOtpRequest;
 import com.sport_pro_be.modules.auth.interfaces.IAuthService;
 import com.sport_pro_be.common.ApiResponse;
+import com.sport_pro_be.common.annotation.RateLimit;
 import com.sport_pro_be.config.AuthProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +33,7 @@ public class AuthController {
     private final AuthProperties authProperties;
 
     @PostMapping("/register/request-otp")
+    @RateLimit(requests = 3, periodInSeconds = 60)
     public ApiResponse<Void> requestRegistrationOtp(@Valid @RequestBody ResendOtpRequest request) {
         authService.requestRegistrationOtp(request.email());
         return ApiResponse.of(OTP_SENT_SUCCESS, null);
@@ -39,12 +41,14 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
+    @RateLimit(requests = 5, periodInSeconds = 60)
     public ApiResponse<Void> register(@Valid @RequestBody RegisterRequest request) {
         authService.register(request);
         return ApiResponse.of(REGISTRATION_SUCCESS, null);
     }
 
     @PostMapping("/login")
+    @RateLimit(requests = 5, periodInSeconds = 60)
     public ApiResponse<LoginSuccessResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         AuthTokenPairResponse tokenPair = authService.login(request);
         response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshTokenCookie(tokenPair.refreshToken()).toString());
@@ -73,6 +77,7 @@ public class AuthController {
     }
 
     @PostMapping("/resend-otp")
+    @RateLimit(requests = 3, periodInSeconds = 60)
     public ApiResponse<Void> resendOtp(@Valid @RequestBody ResendOtpRequest request) {
         authService.resendOtp(request.email());
         return ApiResponse.of(OTP_RESENT_SUCCESS, null);
