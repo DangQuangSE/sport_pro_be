@@ -3,6 +3,7 @@ package com.sport_pro_be.modules.order.service;
 import com.sport_pro_be.modules.order.constant.OrderMessageConstant;
 import com.sport_pro_be.exception.BadRequestException;
 import com.sport_pro_be.exception.ResourceNotFoundException;
+import com.sport_pro_be.modules.audit.annotation.Loggable;
 import com.sport_pro_be.modules.auth.domain.User;
 import com.sport_pro_be.modules.auth.repository.UserRepository;
 import com.sport_pro_be.modules.cart.domain.Cart;
@@ -19,6 +20,7 @@ import com.sport_pro_be.modules.order.repository.OrderItemRepository;
 import com.sport_pro_be.modules.order.repository.OrderRepository;
 import com.sport_pro_be.modules.product.domain.ProductVariant;
 import com.sport_pro_be.modules.product.repository.ProductVariantRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +47,7 @@ public class OrderService implements IOrderService {
 
     @Override
     @Transactional
+    @Loggable(action = "PLACE_ORDER", module = "ORDER")
     public OrderResponse placeOrder(Long userId, OrderRequest request) {
         log.info("Placing order for user id: {}", userId);
         User user = userRepository.findById(userId)
@@ -88,7 +91,7 @@ public class OrderService implements IOrderService {
             ProductVariant variant = cartItem.getProductVariant();
 
             if (variant.getStockQuantity() < cartItem.getQuantity()) {
-                throw new BadRequestException(String.format(OrderMessageConstant.INSUFFICIENT_STOCK, 
+                throw new BadRequestException(String.format(OrderMessageConstant.INSUFFICIENT_STOCK,
                         variant.getProduct().getName(), variant.getSize()));
             }
 
@@ -96,9 +99,14 @@ public class OrderService implements IOrderService {
             variant.setStockQuantity(variant.getStockQuantity() - cartItem.getQuantity());
             productVariantRepository.save(variant);
 
-            // Determine price
+            // Determine product price
             BigDecimal itemPrice = variant.getSalePrice() != null ? variant.getSalePrice() : variant.getOriginalPrice();
             BigDecimal itemTotal = itemPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+
+            // Add printing price if this item has a custom design (snapshot price stored in design)
+            if (cartItem.getCustomDesign() != null) {
+                itemTotal = itemTotal.add(cartItem.getCustomDesign().getTotalPrintingPrice());
+            }
             totalAmount = totalAmount.add(itemTotal);
 
             OrderItem orderItem = OrderItem.builder()
@@ -106,6 +114,7 @@ public class OrderService implements IOrderService {
                     .productVariant(variant)
                     .quantity(cartItem.getQuantity())
                     .price(itemPrice)
+                    .customDesign(cartItem.getCustomDesign())
                     .build();
 
             orderItems.add(orderItem);
@@ -165,6 +174,7 @@ public class OrderService implements IOrderService {
 
     @Override
     @Transactional
+    @Loggable(action = "UPDATE_ORDER_STATUS", module = "ORDER")
     public OrderResponse updateOrderStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(OrderMessageConstant.ORDER_NOT_FOUND));
@@ -184,16 +194,24 @@ public class OrderService implements IOrderService {
 
     private OrderResponse mapToOrderResponse(Order order) {
         List<OrderItemResponse> itemResponses = order.getItems().stream()
-                .map(item -> OrderItemResponse.builder()
-                        .id(item.getId())
-                        .productVariantId(item.getProductVariant().getId())
-                        .productName(item.getProductVariant().getProduct().getName())
-                        .sku(item.getProductVariant().getSku())
-                        .size(item.getProductVariant().getSize())
-                        .color(item.getProductVariant().getColor())
-                        .quantity(item.getQuantity())
-                        .price(item.getPrice()) // item.getPrice() stores the purchase price, it's correct
-                        .build())
+                .map(item -> {
+                    OrderItemResponse.OrderItemResponseBuilder builder = OrderItemResponse.builder()
+                            .id(item.getId())
+                            .productVariantId(item.getProductVariant().getId())
+                            .productName(item.getProductVariant().getProduct().getName())
+                            .sku(item.getProductVariant().getSku())
+                            .size(item.getProductVariant().getSize())
+                            .color(item.getProductVariant().getColor())
+                            .quantity(item.getQuantity())
+                            .price(item.getPrice());
+
+                    if (item.getCustomDesign() != null) {
+                        builder.customDesignId(item.getCustomDesign().getId())
+                               .designImageUrl(item.getCustomDesign().getDesignImageUrl())
+                               .printingPrice(item.getCustomDesign().getTotalPrintingPrice());
+                    }
+                    return builder.build();
+                })
                 .collect(Collectors.toList());
 
         return OrderResponse.builder()

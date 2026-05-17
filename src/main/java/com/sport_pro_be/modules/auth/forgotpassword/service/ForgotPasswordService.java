@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.forgotpassword.service;
+package com.sport_pro_be.modules.auth.forgotpassword.service;
 
 import com.sport_pro_be.modules.auth.domain.OtpVerification;
 import com.sport_pro_be.modules.auth.domain.User;
@@ -26,7 +26,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Locale;
 
-import static com.sport_pro_be.auth.constant.AuthConstant.*;
+import static com.sport_pro_be.modules.auth.constant.AuthConstant.*;
 
 @Service
 @RequiredArgsConstructor

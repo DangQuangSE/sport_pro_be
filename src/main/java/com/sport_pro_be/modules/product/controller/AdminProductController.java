@@ -1,11 +1,10 @@
-﻿package com.sport_pro_be.modules.product.controller;
+package com.sport_pro_be.modules.product.controller;
 
 import com.sport_pro_be.common.ApiResponse;
 import com.sport_pro_be.modules.product.enums.Gender;
 import com.sport_pro_be.modules.product.constant.ProductMessageConstant;
 import com.sport_pro_be.modules.product.enums.ProductStatus;
 import com.sport_pro_be.modules.product.dto.request.ProductCreateRequest;
-import com.sport_pro_be.modules.product.dto.request.ProductImageRequest;
 import com.sport_pro_be.modules.product.dto.request.ProductUpdateRequest;
 import com.sport_pro_be.modules.product.dto.request.ProductVariantRequest;
 import com.sport_pro_be.modules.product.dto.response.ProductDetailResponse;
@@ -19,8 +18,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 
@@ -36,6 +37,7 @@ public class AdminProductController {
 
     @GetMapping
     public ApiResponse<Page<ProductListResponse>> getProducts(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Long brandId,
             @RequestParam(required = false) Gender gender,
@@ -45,7 +47,7 @@ public class AdminProductController {
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) ProductStatus status,
             Pageable pageable) {
-        Page<ProductListResponse> products = productService.getProducts(categoryId, brandId, gender, size, color, minPrice, maxPrice, status, pageable);
+        Page<ProductListResponse> products = productService.getProducts(keyword, categoryId, brandId, gender, size, color, minPrice, maxPrice, status, pageable);
         return ApiResponse.of(ProductMessageConstant.SUCCESS, products);
     }
 
@@ -75,11 +77,15 @@ public class AdminProductController {
     public ApiResponse<ProductVariantResponse> createVariant(@PathVariable Long productId, @Valid @RequestBody ProductVariantRequest request) {
         return ApiResponse.of(ProductMessageConstant.VARIANT_CREATED, productVariantService.createVariant(productId, request));
     }
-
     // Images
-    @PostMapping("/{productId}/images")
-    public ApiResponse<ProductImageResponse> addImage(@PathVariable Long productId, @Valid @RequestBody ProductImageRequest request) {
-        return ApiResponse.of(ProductMessageConstant.IMAGE_ADDED, productImageService.addImage(productId, request));
+    @PostMapping(value = "/{productId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ProductImageResponse> addImage(
+            @PathVariable Long productId,
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(required = false) Long variantId,
+            @RequestParam(required = false, defaultValue = "false") Boolean isThumbnail,
+            @RequestParam(required = false, defaultValue = "0") Integer sortOrder) {
+        return ApiResponse.of(ProductMessageConstant.IMAGE_ADDED, productImageService.addImage(productId, file, variantId, isThumbnail, sortOrder));
     }
 }
 

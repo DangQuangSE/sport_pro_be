@@ -13,11 +13,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartItemRequest {
-    
+
     @NotNull(message = CartMessageConstant.VARIANT_ID_REQUIRED)
     private Long variantId;
 
     @NotNull(message = CartMessageConstant.QUANTITY_REQUIRED)
     @Min(value = 0, message = CartMessageConstant.QUANTITY_MIN)
     private Integer quantity;
+
+    // Optional: attach a custom design to this cart item
+    private Long customDesignId;
 }

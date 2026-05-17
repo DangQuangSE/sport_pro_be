@@ -12,7 +12,10 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Entity
-@Table(name = "app_users")
+@Table(name = "app_users", indexes = {
+        @Index(name = "idx_user_role", columnList = "role"),
+        @Index(name = "idx_user_tier", columnList = "tier")
+})
 public class User extends AbstractAuditingEntity {
 
     @Id
@@ -21,6 +24,10 @@ public class User extends AbstractAuditingEntity {
 
     @Column(nullable = false, unique = true, length = 190)
     private String email;
+
+    private String firstName;
+    private String lastName;
+    private String avatar;
 
     @Column(nullable = false)
     private String passwordHash;

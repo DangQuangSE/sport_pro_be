@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.product.repository;
+package com.sport_pro_be.modules.product.repository;
 
 import com.sport_pro_be.modules.product.domain.ProductVariant;
 import org.springframework.data.jpa.repository.JpaRepository;

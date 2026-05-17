@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.category.constant;
+package com.sport_pro_be.modules.category.constant;
 
 public class CategoryConstant {
     private CategoryConstant() {

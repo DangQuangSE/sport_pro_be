@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.repository;
+package com.sport_pro_be.modules.auth.repository;
 
 import com.sport_pro_be.modules.auth.enums.OtpType;
 import com.sport_pro_be.modules.auth.domain.OtpVerification;

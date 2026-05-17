@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.brand.controller;
+package com.sport_pro_be.modules.brand.controller;
 
 import com.sport_pro_be.modules.brand.constant.BrandConstant;
 import com.sport_pro_be.modules.brand.dto.BrandResponse;

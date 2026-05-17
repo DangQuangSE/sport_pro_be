@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.category.repository;
+package com.sport_pro_be.modules.category.repository;
 
 import com.sport_pro_be.modules.category.domain.Category;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.constant;
+package com.sport_pro_be.modules.auth.constant;
 
 public class AuthConstant {
     private AuthConstant() {

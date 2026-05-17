@@ -22,4 +22,9 @@ public class CartItemResponse {
     private BigDecimal salePrice;
     private Integer quantity;
     private BigDecimal itemTotal;
+    // Custom design info (null if no design attached)
+    private Long customDesignId;
+    private String designImageUrl;
+    private BigDecimal printingPrice;
 }
+

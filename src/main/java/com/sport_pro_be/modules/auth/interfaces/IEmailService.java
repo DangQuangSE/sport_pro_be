@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.interfaces;
+package com.sport_pro_be.modules.auth.interfaces;
 
 public interface IEmailService {
 
