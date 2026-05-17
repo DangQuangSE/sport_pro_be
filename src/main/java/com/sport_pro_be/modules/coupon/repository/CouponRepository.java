@@ -2,6 +2,7 @@ package com.sport_pro_be.modules.coupon.repository;
 
 import com.sport_pro_be.modules.coupon.domain.Coupon;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;

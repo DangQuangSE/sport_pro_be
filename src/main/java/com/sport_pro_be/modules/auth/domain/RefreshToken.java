@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.domain;
+package com.sport_pro_be.modules.auth.domain;
 
 import com.sport_pro_be.common.AbstractAuditingEntity;
 import jakarta.persistence.*;

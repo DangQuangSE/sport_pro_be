@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.product.interfaces;
+package com.sport_pro_be.modules.product.interfaces;
 
 import com.sport_pro_be.modules.product.dto.request.ProductVariantRequest;
 import com.sport_pro_be.modules.product.dto.response.ProductVariantResponse;

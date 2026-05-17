@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.service;
+package com.sport_pro_be.modules.auth.service;
 
 import com.sport_pro_be.modules.auth.domain.OtpVerification;
 import com.sport_pro_be.modules.auth.domain.RefreshToken;
@@ -14,6 +14,7 @@ import com.sport_pro_be.modules.auth.interfaces.IJwtService;
 import com.sport_pro_be.modules.auth.repository.OtpVerificationRepository;
 import com.sport_pro_be.modules.auth.repository.RefreshTokenRepository;
 import com.sport_pro_be.modules.auth.repository.UserRepository;
+import com.sport_pro_be.modules.audit.annotation.Loggable;
 import com.sport_pro_be.config.AuthProperties;
 import com.sport_pro_be.exception.*;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,7 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.Locale;
 
-import static com.sport_pro_be.auth.constant.AuthConstant.*;
+import static com.sport_pro_be.modules.auth.constant.AuthConstant.*;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +49,7 @@ public class AuthService implements IAuthService {
 
     @Override
     @Transactional
+    @Loggable(action = "REQUEST_OTP", module = "AUTH")
     public void requestRegistrationOtp(String email) {
         String normalizedEmail = normalizeEmail(email);
         if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
@@ -59,6 +61,7 @@ public class AuthService implements IAuthService {
 
     @Override
     @Transactional
+    @Loggable(action = "REGISTER", module = "AUTH")
     public void register(RegisterRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
         if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
@@ -84,6 +87,7 @@ public class AuthService implements IAuthService {
 
     @Override
     @Transactional
+    @Loggable(action = "LOGIN", module = "AUTH")
     public AuthTokenPairResponse login(LoginRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
@@ -150,6 +154,7 @@ public class AuthService implements IAuthService {
 
     @Override
     @Transactional
+    @Loggable(action = "LOGOUT", module = "AUTH")
     public void logout(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
             return;

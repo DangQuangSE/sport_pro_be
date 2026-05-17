@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.product.dto.response;
+package com.sport_pro_be.modules.product.dto.response;
 
 import com.sport_pro_be.modules.product.enums.Gender;
 import lombok.Builder;

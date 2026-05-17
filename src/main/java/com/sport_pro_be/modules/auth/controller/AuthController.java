@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.controller;
+package com.sport_pro_be.modules.auth.controller;
 
 import com.sport_pro_be.modules.auth.dto.AuthTokenPairResponse;
 import com.sport_pro_be.modules.auth.dto.LoginRequest;
@@ -6,8 +6,10 @@ import com.sport_pro_be.modules.auth.dto.LoginSuccessResponse;
 import com.sport_pro_be.modules.auth.dto.OtpVerifyRequest;
 import com.sport_pro_be.modules.auth.dto.RegisterRequest;
 import com.sport_pro_be.modules.auth.dto.ResendOtpRequest;
+import com.sport_pro_be.modules.auth.domain.User;
 import com.sport_pro_be.modules.auth.interfaces.IAuthService;
 import com.sport_pro_be.common.ApiResponse;
+import com.sport_pro_be.common.annotation.RateLimit;
 import com.sport_pro_be.config.AuthProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-import static com.sport_pro_be.auth.constant.AuthConstant.*;
+import static com.sport_pro_be.modules.auth.constant.AuthConstant.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,6 +34,7 @@ public class AuthController {
     private final AuthProperties authProperties;
 
     @PostMapping("/register/request-otp")
+    @RateLimit(requests = 3, periodInSeconds = 60)
     public ApiResponse<Void> requestRegistrationOtp(@Valid @RequestBody ResendOtpRequest request) {
         authService.requestRegistrationOtp(request.email());
         return ApiResponse.of(OTP_SENT_SUCCESS, null);
@@ -39,12 +42,14 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
+    @RateLimit(requests = 5, periodInSeconds = 60)
     public ApiResponse<Void> register(@Valid @RequestBody RegisterRequest request) {
         authService.register(request);
         return ApiResponse.of(REGISTRATION_SUCCESS, null);
     }
 
     @PostMapping("/login")
+    @RateLimit(requests = 5, periodInSeconds = 60)
     public ApiResponse<LoginSuccessResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         AuthTokenPairResponse tokenPair = authService.login(request);
         response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshTokenCookie(tokenPair.refreshToken()).toString());
@@ -73,18 +78,20 @@ public class AuthController {
     }
 
     @PostMapping("/resend-otp")
+    @RateLimit(requests = 3, periodInSeconds = 60)
     public ApiResponse<Void> resendOtp(@Valid @RequestBody ResendOtpRequest request) {
         authService.resendOtp(request.email());
         return ApiResponse.of(OTP_RESENT_SUCCESS, null);
     }
 
     @GetMapping("/me")
-    public ApiResponse<Map<String, Object>> me(org.springframework.security.core.Authentication authentication) {
-        com.sport_pro_be.auth.domain.User user = (com.sport_pro_be.auth.domain.User) authentication.getPrincipal();
+    public ApiResponse<Map<String, Object>> me() {
+        User user = com.sport_pro_be.common.SecurityUtils.getCurrentUser();
         Map<String, Object> data = Map.of(
                 "email", user.getEmail(),
                 "role", user.getRole().name(),
-                "authorities", authentication.getAuthorities()
+                "tier", user.getTier().name(),
+                "totalSpending", user.getTotalSpending()
         );
         return ApiResponse.of(USER_DETAILS_RETRIEVED, data);
     }

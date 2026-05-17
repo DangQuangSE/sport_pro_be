@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.product.controller;
+package com.sport_pro_be.modules.product.controller;
 
 import com.sport_pro_be.common.ApiResponse;
 import com.sport_pro_be.modules.product.enums.Gender;
@@ -23,6 +23,7 @@ public class PublicProductController {
 
     @GetMapping
     public ApiResponse<Page<ProductListResponse>> getProducts(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Long brandId,
             @RequestParam(required = false) Gender gender,
@@ -33,7 +34,7 @@ public class PublicProductController {
             Pageable pageable) {
         
         // Force status to ACTIVE for public API
-        Page<ProductListResponse> products = productService.getProducts(categoryId, brandId, gender, size, color, minPrice, maxPrice, ProductStatus.ACTIVE, pageable);
+        Page<ProductListResponse> products = productService.getProducts(keyword, categoryId, brandId, gender, size, color, minPrice, maxPrice, ProductStatus.ACTIVE, pageable);
         return ApiResponse.of(ProductMessageConstant.SUCCESS, products);
     }
 

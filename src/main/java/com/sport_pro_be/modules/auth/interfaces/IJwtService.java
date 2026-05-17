@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.interfaces;
+package com.sport_pro_be.modules.auth.interfaces;
 
 import com.sport_pro_be.modules.auth.domain.User;
 

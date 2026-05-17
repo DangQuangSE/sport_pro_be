@@ -1,4 +1,4 @@
-﻿package com.sport_pro_be.modules.auth.security;
+package com.sport_pro_be.modules.auth.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
