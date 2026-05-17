@@ -6,6 +6,7 @@ import com.sport_pro_be.modules.auth.dto.LoginSuccessResponse;
 import com.sport_pro_be.modules.auth.dto.OtpVerifyRequest;
 import com.sport_pro_be.modules.auth.dto.RegisterRequest;
 import com.sport_pro_be.modules.auth.dto.ResendOtpRequest;
+import com.sport_pro_be.modules.auth.domain.User;
 import com.sport_pro_be.modules.auth.interfaces.IAuthService;
 import com.sport_pro_be.common.ApiResponse;
 import com.sport_pro_be.common.annotation.RateLimit;
