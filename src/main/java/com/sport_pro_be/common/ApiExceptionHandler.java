@@ -42,7 +42,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleUnhandledException(Exception ex) {
-        // Log the actual error here in a real app
+        log.error("Unhandled exception caught: ", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiResponse<>(ApiExceptionConstant.INTERNAL_SERVER_ERROR, null, Instant.now()));
     }

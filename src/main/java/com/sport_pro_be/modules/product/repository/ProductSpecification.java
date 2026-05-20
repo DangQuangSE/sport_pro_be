@@ -59,17 +59,15 @@ public class ProductSpecification {
                 }
 
                 if (minPrice != null) {
-                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(variantJoin.get("price"), minPrice));
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(variantJoin.get("salePrice"), minPrice));
                 }
 
                 if (maxPrice != null) {
-                    predicates.add(criteriaBuilder.lessThanOrEqualTo(variantJoin.get("price"), maxPrice));
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(variantJoin.get("salePrice"), maxPrice));
                 }
                 
-                // Ensure variant is active if filtering by variant properties
                 predicates.add(criteriaBuilder.equal(variantJoin.get("status"), ProductStatus.ACTIVE));
                 
-                // Avoid duplicates
                 query.distinct(true);
             }
 
