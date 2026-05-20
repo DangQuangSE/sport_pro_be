@@ -32,7 +32,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -115,13 +118,13 @@ public class ProductService implements IProductService {
 
         @Override
         @Transactional(readOnly = true)
-        @Cacheable(value = "products", key = "{#keyword, #categoryId, #brandId, #gender, #size, #color, #minPrice, #maxPrice, #status, #pageable.pageNumber, #pageable.pageSize}")
+        @Cacheable(value = "products", key = "{#keyword, #categoryId, #brandId, #gender, #size, #color, #minPrice, #maxPrice, #status, #pageable.pageNumber, #pageable.pageSize, #pageable.sort}")
         public Page<ProductListResponse> getProducts(String keyword, Long categoryId, Long brandId, Gender gender, String size,
                         String color, BigDecimal minPrice, BigDecimal maxPrice, ProductStatus status,
                         Pageable pageable) {
                 Specification<Product> spec = ProductSpecification.filterProducts(keyword, categoryId, brandId, gender, size,
                                 color, minPrice, maxPrice, status);
-                Page<Product> products = productRepository.findAll(spec, pageable);
+                Page<Product> products = productRepository.findAllWithAssociations(spec, pageable);
                 return products.map(this::mapToListResponse);
         }
 
@@ -129,7 +132,7 @@ public class ProductService implements IProductService {
         @Transactional(readOnly = true)
         @Cacheable(value = "product_details", key = "#id")
         public ProductDetailResponse getProductById(Long id) {
-                Product product = productRepository.findById(id)
+                Product product = productRepository.findByIdWithAssociations(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 ProductMessageConstant.PRODUCT_NOT_FOUND));
                 return mapToDetailResponse(product);
@@ -139,7 +142,7 @@ public class ProductService implements IProductService {
         @Transactional(readOnly = true)
         @Cacheable(value = "product_details", key = "#slug")
         public ProductDetailResponse getProductBySlug(String slug) {
-                Product product = productRepository.findBySlug(slug)
+                Product product = productRepository.findBySlugWithAssociations(slug)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 ProductMessageConstant.PRODUCT_NOT_FOUND));
                 return mapToDetailResponse(product);
@@ -147,26 +150,25 @@ public class ProductService implements IProductService {
 
         private String generateSlug(String name) {
                 String baseSlug = SlugUtils.toSlugBase(name);
-                String slug = baseSlug;
-                int count = 1;
-                while (productRepository.existsBySlug(slug)) {
-                        slug = baseSlug + "-" + count++;
+                long existingCount = productRepository.countBySlugPattern(baseSlug);
+                if (existingCount == 0) {
+                        return baseSlug;
                 }
-                return slug;
+                return baseSlug + "-" + (existingCount + 1);
         }
-
         private ProductListResponse mapToListResponse(Product product) {
-                BigDecimal minPrice = product.getVariants().stream()
-                                .map(v -> v.getSalePrice() != null ? v.getSalePrice() : v.getOriginalPrice())
-                                .min(BigDecimal::compareTo).orElse(null);
-                BigDecimal maxPrice = product.getVariants().stream()
-                                .map(v -> v.getSalePrice() != null ? v.getSalePrice() : v.getOriginalPrice())
-                                .max(BigDecimal::compareTo).orElse(null);
+                BigDecimal minPrice = null;
+                BigDecimal maxPrice = null;
+                Set<String> sizes = new LinkedHashSet<>();
+                Set<String> colors = new LinkedHashSet<>();
 
-                List<String> sizes = product.getVariants().stream()
-                                .map(ProductVariant::getSize).distinct().collect(Collectors.toList());
-                List<String> colors = product.getVariants().stream()
-                                .map(ProductVariant::getColor).distinct().collect(Collectors.toList());
+                for (ProductVariant v : product.getVariants()) {
+                        BigDecimal price = v.getSalePrice() != null ? v.getSalePrice() : v.getOriginalPrice();
+                        if (minPrice == null || price.compareTo(minPrice) < 0) minPrice = price;
+                        if (maxPrice == null || price.compareTo(maxPrice) > 0) maxPrice = price;
+                        sizes.add(v.getSize());
+                        colors.add(v.getColor());
+                }
 
                 String thumbnailUrl = product.getImages().stream()
                                 .filter(ProductImage::getIsThumbnail)
@@ -182,8 +184,8 @@ public class ProductService implements IProductService {
                                 .categoryName(product.getCategory().getName())
                                 .minPrice(minPrice)
                                 .maxPrice(maxPrice)
-                                .availableSizes(sizes)
-                                .availableColors(colors)
+                                .availableSizes(new ArrayList<>(sizes))
+                                .availableColors(new ArrayList<>(colors))
                                 .build();
         }
 
@@ -223,4 +225,3 @@ public class ProductService implements IProductService {
                                 .build();
         }
 }
-
