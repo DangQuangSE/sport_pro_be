@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl implements ICategoryService {
 
     private final CategoryRepository categoryRepository;
-
     @Override
     @Transactional
     public CategoryResponse createCategory(CategoryRequest request) {
