@@ -161,6 +161,8 @@ public class ProductService implements IProductService {
                 BigDecimal maxPrice = null;
                 Set<String> sizes = new LinkedHashSet<>();
                 Set<String> colors = new LinkedHashSet<>();
+                int totalStock = 0;
+                String firstSku = null;
 
                 for (ProductVariant v : product.getVariants()) {
                         BigDecimal price = v.getSalePrice() != null ? v.getSalePrice() : v.getOriginalPrice();
@@ -168,12 +170,20 @@ public class ProductService implements IProductService {
                         if (maxPrice == null || price.compareTo(maxPrice) > 0) maxPrice = price;
                         sizes.add(v.getSize());
                         colors.add(v.getColor());
+                        totalStock += v.getStockQuantity();
+                        if (firstSku == null) {
+                                firstSku = v.getSku();
+                        }
                 }
 
                 String thumbnailUrl = product.getImages().stream()
-                                .filter(ProductImage::getIsThumbnail)
+                                .filter(img -> Boolean.TRUE.equals(img.getIsThumbnail()))
                                 .map(ProductImage::getImageUrl)
-                                .findFirst().orElse(null);
+                                .findFirst()
+                                .orElseGet(() -> product.getImages().stream()
+                                                .map(ProductImage::getImageUrl)
+                                                .findFirst()
+                                                .orElse(null));
 
                 return ProductListResponse.builder()
                                 .id(product.getId())
@@ -186,6 +196,13 @@ public class ProductService implements IProductService {
                                 .maxPrice(maxPrice)
                                 .availableSizes(new ArrayList<>(sizes))
                                 .availableColors(new ArrayList<>(colors))
+                                .sku(firstSku != null ? firstSku : "N/A")
+                                .basePrice(minPrice != null ? minPrice : BigDecimal.ZERO)
+                                .imageUrl(thumbnailUrl)
+                                .gender(product.getGender().name())
+                                .status(product.getStatus().name())
+                                .totalStock(totalStock)
+                                .averageRating(product.getAverageRating())
                                 .build();
         }
 

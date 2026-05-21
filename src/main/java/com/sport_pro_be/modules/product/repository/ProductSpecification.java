@@ -4,6 +4,7 @@ import com.sport_pro_be.modules.product.enums.Gender;
 import com.sport_pro_be.modules.product.enums.ProductStatus;
 import com.sport_pro_be.modules.product.domain.Product;
 import com.sport_pro_be.modules.product.domain.ProductVariant;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -47,23 +48,28 @@ public class ProductSpecification {
                 predicates.add(criteriaBuilder.equal(root.get("gender"), gender));
             }
 
-            if (size != null || color != null || minPrice != null || maxPrice != null) {
+            boolean hasSize = size != null && !size.isBlank();
+            boolean hasColor = color != null && !color.isBlank();
+
+            if (hasSize || hasColor || minPrice != null || maxPrice != null) {
                 Join<Product, ProductVariant> variantJoin = root.join("variants", JoinType.INNER);
 
-                if (size != null && !size.isEmpty()) {
+                if (hasSize) {
                     predicates.add(criteriaBuilder.equal(variantJoin.get("size"), size));
                 }
 
-                if (color != null && !color.isEmpty()) {
+                if (hasColor) {
                     predicates.add(criteriaBuilder.equal(variantJoin.get("color"), color));
                 }
 
                 if (minPrice != null) {
-                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(variantJoin.get("salePrice"), minPrice));
+                    Expression<BigDecimal> effectivePrice = criteriaBuilder.coalesce(variantJoin.get("salePrice"), variantJoin.get("originalPrice"));
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(effectivePrice, minPrice));
                 }
 
                 if (maxPrice != null) {
-                    predicates.add(criteriaBuilder.lessThanOrEqualTo(variantJoin.get("salePrice"), maxPrice));
+                    Expression<BigDecimal> effectivePrice = criteriaBuilder.coalesce(variantJoin.get("salePrice"), variantJoin.get("originalPrice"));
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(effectivePrice, maxPrice));
                 }
                 
                 predicates.add(criteriaBuilder.equal(variantJoin.get("status"), ProductStatus.ACTIVE));

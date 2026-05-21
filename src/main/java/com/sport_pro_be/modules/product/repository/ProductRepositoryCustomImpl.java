@@ -34,20 +34,35 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
             if (predicate != null) cq.where(predicate);
         }
 
+        List<Order> orders = new ArrayList<>();
         if (pageable.getSort() != null && pageable.getSort().isSorted()) {
-            List<Order> orders = new ArrayList<>();
+            java.util.Set<String> attributeNames = root.getModel().getAttributes().stream()
+                    .map(jakarta.persistence.metamodel.Attribute::getName)
+                    .collect(java.util.stream.Collectors.toSet());
+
             pageable.getSort().forEach(order -> {
-                if (order.isAscending()) {
-                    orders.add(cb.asc(root.get(order.getProperty())));
-                } else {
-                    orders.add(cb.desc(root.get(order.getProperty())));
+                String property = order.getProperty();
+                if (attributeNames.contains(property)) {
+                    if (order.isAscending()) {
+                        orders.add(cb.asc(root.get(property)));
+                    } else {
+                        orders.add(cb.desc(root.get(property)));
+                    }
                 }
             });
-            cq.orderBy(orders);
         }
+
+        if (!orders.isEmpty()) {
+            cq.orderBy(orders);
+        } else {
+            cq.orderBy(cb.desc(root.get("id")));
+        }
+
         TypedQuery<Product> query = entityManager.createQuery(cq);
         query.setFirstResult((int) pageable.getOffset());
-        query.setMaxResults(pageable.getPageSize());
+        
+        int pageSize = Math.min(pageable.getPageSize(), 250);
+        query.setMaxResults(pageSize);
         List<Product> content = query.getResultList();
 
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
