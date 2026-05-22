@@ -73,7 +73,7 @@ public class AdminProductController {
                     description = "Product size to filter by (e.g. 42, S, M, L). Leave blank to ignore size filter.",
                     required = false
             )
-            @RequestParam(required = false) String size,
+            @RequestParam(value = "productSize", required = false) String size,
 
             @Parameter(
                     description = "Product color to filter by (e.g. Red, Black, White). Leave blank to ignore color filter.",
