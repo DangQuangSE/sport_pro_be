@@ -19,6 +19,8 @@ public class ProductListResponse {
     private String categoryName;
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
+    private BigDecimal originalPrice;
+    private BigDecimal salePrice;
     private List<String> availableSizes;
     private List<String> availableColors;
 

@@ -77,7 +77,7 @@ public class ProductService implements IProductService {
         @Override
         @Transactional
         @Loggable(action = "UPDATE_PRODUCT", module = "PRODUCT")
-        @CacheEvict(value = {"products", "product_details"}, allEntries = true)
+        @CacheEvict(value = { "products", "product_details" }, allEntries = true)
         public ProductDetailResponse updateProduct(Long id, ProductUpdateRequest request) {
                 Product product = productRepository.findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -108,7 +108,7 @@ public class ProductService implements IProductService {
         @Override
         @Transactional
         @Loggable(action = "DELETE_PRODUCT", module = "PRODUCT")
-        @CacheEvict(value = {"products", "product_details"}, allEntries = true)
+        @CacheEvict(value = { "products", "product_details" }, allEntries = true)
         public void deleteProduct(Long id) {
                 Product product = productRepository.findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -119,10 +119,12 @@ public class ProductService implements IProductService {
         @Override
         @Transactional(readOnly = true)
         @Cacheable(value = "products", key = "{#keyword, #categoryId, #brandId, #gender, #size, #color, #minPrice, #maxPrice, #status, #pageable.pageNumber, #pageable.pageSize, #pageable.sort}")
-        public Page<ProductListResponse> getProducts(String keyword, Long categoryId, Long brandId, Gender gender, String size,
+        public Page<ProductListResponse> getProducts(String keyword, Long categoryId, Long brandId, Gender gender,
+                        String size,
                         String color, BigDecimal minPrice, BigDecimal maxPrice, ProductStatus status,
                         Pageable pageable) {
-                Specification<Product> spec = ProductSpecification.filterProducts(keyword, categoryId, brandId, gender, size,
+                Specification<Product> spec = ProductSpecification.filterProducts(keyword, categoryId, brandId, gender,
+                                size,
                                 color, minPrice, maxPrice, status);
                 Page<Product> products = productRepository.findAllWithAssociations(spec, pageable);
                 return products.map(this::mapToListResponse);
@@ -156,9 +158,11 @@ public class ProductService implements IProductService {
                 }
                 return baseSlug + "-" + (existingCount + 1);
         }
+
         private ProductListResponse mapToListResponse(Product product) {
                 BigDecimal minPrice = null;
                 BigDecimal maxPrice = null;
+                ProductVariant cheapestVariant = null;
                 Set<String> sizes = new LinkedHashSet<>();
                 Set<String> colors = new LinkedHashSet<>();
                 int totalStock = 0;
@@ -166,8 +170,12 @@ public class ProductService implements IProductService {
 
                 for (ProductVariant v : product.getVariants()) {
                         BigDecimal price = v.getSalePrice() != null ? v.getSalePrice() : v.getOriginalPrice();
-                        if (minPrice == null || price.compareTo(minPrice) < 0) minPrice = price;
-                        if (maxPrice == null || price.compareTo(maxPrice) > 0) maxPrice = price;
+                        if (minPrice == null || price.compareTo(minPrice) < 0) {
+                                minPrice = price;
+                                cheapestVariant = v;
+                        }
+                        if (maxPrice == null || price.compareTo(maxPrice) > 0)
+                                maxPrice = price;
                         sizes.add(v.getSize());
                         colors.add(v.getColor());
                         totalStock += v.getStockQuantity();
@@ -192,12 +200,14 @@ public class ProductService implements IProductService {
                                 .thumbnailUrl(thumbnailUrl)
                                 .brandName(product.getBrand().getName())
                                 .categoryName(product.getCategory().getName())
-                                .minPrice(minPrice)
-                                .maxPrice(maxPrice)
                                 .availableSizes(new ArrayList<>(sizes))
                                 .availableColors(new ArrayList<>(colors))
                                 .sku(firstSku != null ? firstSku : "N/A")
-                                .basePrice(minPrice != null ? minPrice : BigDecimal.ZERO)
+                                .minPrice(minPrice)
+                                .maxPrice(maxPrice)
+                                .originalPrice(cheapestVariant != null ? cheapestVariant.getOriginalPrice()
+                                                : BigDecimal.ZERO)
+                                .salePrice(cheapestVariant != null ? cheapestVariant.getSalePrice() : null)
                                 .imageUrl(thumbnailUrl)
                                 .gender(product.getGender().name())
                                 .status(product.getStatus().name())
