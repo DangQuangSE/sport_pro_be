@@ -14,8 +14,11 @@ import com.sport_pro_be.modules.product.dto.response.ProductVariantResponse;
 import com.sport_pro_be.modules.product.interfaces.IProductImageService;
 import com.sport_pro_be.modules.product.interfaces.IProductService;
 import com.sport_pro_be.modules.product.interfaces.IProductVariantService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -35,18 +38,69 @@ public class AdminProductController {
     private final IProductVariantService productVariantService;
     private final IProductImageService productImageService;
 
+    @Operation(
+            summary = "Get all products list for administration (Admin Product List)",
+            description = "Enables administrators to search and filter all products with any status (ACTIVE, INACTIVE, DELETED). " +
+                          "All filters are OPTIONAL. Click 'Try it out' and then 'Execute' directly (without filling anything) to retrieve all existing mock database data."
+    )
     @GetMapping
     public ApiResponse<Page<ProductListResponse>> getProducts(
+            @Parameter(
+                    description = "Search keyword for product name or description (e.g. shoe). Leave blank to retrieve all products.",
+                    required = false
+            )
             @RequestParam(required = false) String keyword,
+
+            @Parameter(
+                    description = "Category ID to filter by (e.g. 1). Leave blank to ignore category filter.",
+                    required = false
+            )
             @RequestParam(required = false) Long categoryId,
+
+            @Parameter(
+                    description = "Brand ID to filter by (e.g. 1). Leave blank to ignore brand filter.",
+                    required = false
+            )
             @RequestParam(required = false) Long brandId,
+
+            @Parameter(
+                    description = "Target gender of the product (MALE, FEMALE, UNISEX). Leave blank to retrieve all.",
+                    required = false
+            )
             @RequestParam(required = false) Gender gender,
-            @RequestParam(required = false) String size,
+
+            @Parameter(
+                    description = "Product size to filter by (e.g. 42, S, M, L). Leave blank to ignore size filter.",
+                    required = false
+            )
+            @RequestParam(value = "productSize", required = false) String size,
+
+            @Parameter(
+                    description = "Product color to filter by (e.g. Red, Black, White). Leave blank to ignore color filter.",
+                    required = false
+            )
             @RequestParam(required = false) String color,
+
+            @Parameter(
+                    description = "Minimum price in VND. Filters by sale price of variants. (Note: Existing DB mock data price is 100.00 VND). Leave blank to retrieve all.",
+                    required = false
+            )
             @RequestParam(required = false) BigDecimal minPrice,
+
+            @Parameter(
+                    description = "Maximum price in VND. Filters by sale price of variants. (e.g. 500 or 2000000). Leave blank to retrieve all.",
+                    required = false
+            )
             @RequestParam(required = false) BigDecimal maxPrice,
+
+            @Parameter(
+                    description = "Filter by product status (ACTIVE, INACTIVE, DELETED). Leave blank to ignore status filter.",
+                    required = false
+            )
             @RequestParam(required = false) ProductStatus status,
-            Pageable pageable) {
+
+            @ParameterObject
+            @org.springframework.data.web.PageableDefault(size = 20, sort = "id", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         Page<ProductListResponse> products = productService.getProducts(keyword, categoryId, brandId, gender, size, color, minPrice, maxPrice, status, pageable);
         return ApiResponse.of(ProductMessageConstant.SUCCESS, products);
     }

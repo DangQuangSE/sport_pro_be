@@ -24,7 +24,7 @@ public class CacheConfig {
         return Caffeine.newBuilder()
                 .initialCapacity(100)
                 .maximumSize(500)
-                .expireAfterWrite(10, TimeUnit.MINUTES) // Tự động xóa sau 10 phút
+                .expireAfterWrite(10, TimeUnit.MINUTES)
                 .recordStats();
     }
 }

@@ -19,8 +19,19 @@ public class ProductListResponse {
     private String categoryName;
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
+    private BigDecimal originalPrice;
+    private BigDecimal salePrice;
     private List<String> availableSizes;
     private List<String> availableColors;
+
+    // Frontend compatibility fields
+    private String sku;
+    private BigDecimal basePrice;
+    private String imageUrl;
+    private String gender;
+    private String status;
+    private Integer totalStock;
+    private Double averageRating;
 }
 
 
