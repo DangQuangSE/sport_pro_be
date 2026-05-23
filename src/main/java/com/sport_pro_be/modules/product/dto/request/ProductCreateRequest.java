@@ -23,6 +23,8 @@ public class ProductCreateRequest {
 
     @NotNull(message = ProductMessageConstant.GENDER_REQUIRED)
     private Gender gender;
+
+    private Boolean isFeatured;
 }
 
 

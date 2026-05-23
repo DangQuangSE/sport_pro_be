@@ -27,6 +27,8 @@ public class ProductUpdateRequest {
 
     @NotNull(message = ProductMessageConstant.STATUS_REQUIRED)
     private ProductStatus status;
+
+    private Boolean isFeatured;
 }
 
 
