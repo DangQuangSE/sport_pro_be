@@ -20,6 +20,7 @@ public class ProductDetailResponse {
     private Gender gender;
     private List<ProductImageResponse> images;
     private List<ProductVariantResponse> variants;
+    private Boolean isFeatured;
 }
 
 
