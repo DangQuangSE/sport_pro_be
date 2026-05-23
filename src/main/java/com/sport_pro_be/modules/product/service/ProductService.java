@@ -67,7 +67,8 @@ public class ProductService implements IProductService {
                                 .category(category)
                                 .brand(brand)
                                 .gender(request.getGender())
-                                .status(ProductStatus.ACTIVE)
+                                .status(request.getStatus() != null ? request.getStatus() : ProductStatus.ACTIVE)
+                                .isFeatured(request.getIsFeatured() != null ? request.getIsFeatured() : false)
                                 .build();
 
                 product = productRepository.save(product);
@@ -100,6 +101,9 @@ public class ProductService implements IProductService {
                 product.setBrand(brand);
                 product.setGender(request.getGender());
                 product.setStatus(request.getStatus());
+                if (request.getIsFeatured() != null) {
+                        product.setIsFeatured(request.getIsFeatured());
+                }
 
                 product = productRepository.save(product);
                 return mapToDetailResponse(product);
@@ -118,14 +122,14 @@ public class ProductService implements IProductService {
 
         @Override
         @Transactional(readOnly = true)
-        @Cacheable(value = "products", key = "{#keyword, #categoryId, #brandId, #gender, #size, #color, #minPrice, #maxPrice, #status, #pageable.pageNumber, #pageable.pageSize, #pageable.sort}")
+        @Cacheable(value = "products", key = "{#keyword, #categoryId, #brandId, #gender, #size, #color, #minPrice, #maxPrice, #isFeatured, #status, #pageable.pageNumber, #pageable.pageSize, #pageable.sort}")
         public Page<ProductListResponse> getProducts(String keyword, Long categoryId, Long brandId, Gender gender,
                         String size,
-                        String color, BigDecimal minPrice, BigDecimal maxPrice, ProductStatus status,
+                        String color, BigDecimal minPrice, BigDecimal maxPrice, Boolean isFeatured, ProductStatus status,
                         Pageable pageable) {
                 Specification<Product> spec = ProductSpecification.filterProducts(keyword, categoryId, brandId, gender,
                                 size,
-                                color, minPrice, maxPrice, status);
+                                color, minPrice, maxPrice, isFeatured, status);
                 Page<Product> products = productRepository.findAllWithAssociations(spec, pageable);
                 return products.map(this::mapToListResponse);
         }
@@ -177,7 +181,11 @@ public class ProductService implements IProductService {
                         if (maxPrice == null || price.compareTo(maxPrice) > 0)
                                 maxPrice = price;
                         sizes.add(v.getSize());
-                        colors.add(v.getColor());
+                        if (v.getColor() != null) {
+                                colors.add(v.getColor().getName());
+                        } else if (v.getColorOld() != null) {
+                                colors.add(v.getColorOld());
+                        }
                         totalStock += v.getStockQuantity();
                         if (firstSku == null) {
                                 firstSku = v.getSku();
@@ -213,6 +221,7 @@ public class ProductService implements IProductService {
                                 .status(product.getStatus().name())
                                 .totalStock(totalStock)
                                 .averageRating(product.getAverageRating())
+                                .isFeatured(product.getIsFeatured())
                                 .build();
         }
 
@@ -231,7 +240,9 @@ public class ProductService implements IProductService {
                                                 .id(v.getId())
                                                 .sku(v.getSku())
                                                 .size(v.getSize())
-                                                .color(v.getColor())
+                                                .colorId(v.getColor() != null ? v.getColor().getId() : null)
+                                                .colorName(v.getColor() != null ? v.getColor().getName() : v.getColorOld())
+                                                .colorHex(v.getColor() != null ? v.getColor().getHexCode() : "#000000")
                                                 .originalPrice(v.getOriginalPrice())
                                                 .salePrice(v.getSalePrice())
                                                 .stockQuantity(v.getStockQuantity())
@@ -245,10 +256,14 @@ public class ProductService implements IProductService {
                                 .slug(product.getSlug())
                                 .description(product.getDescription())
                                 .brandName(product.getBrand().getName())
+                                .brandId(product.getBrand().getId())
                                 .categoryName(product.getCategory().getName())
+                                .categoryId(product.getCategory().getId())
                                 .gender(product.getGender())
+                                .status(product.getStatus())
                                 .images(images)
                                 .variants(variants)
+                                .isFeatured(product.getIsFeatured())
                                 .build();
         }
 }

@@ -2,6 +2,7 @@ package com.sport_pro_be.modules.product.domain;
 
 import com.sport_pro_be.common.AbstractAuditingEntity;
 import com.sport_pro_be.modules.product.enums.ProductStatus;
+import com.sport_pro_be.modules.color.domain.Color;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,8 +38,12 @@ public class ProductVariant extends AbstractAuditingEntity {
     @Column(nullable = false, length = 50)
     private String size;
 
-    @Column(nullable = false, length = 50)
-    private String color;
+    @Column(name = "color", nullable = true, length = 50)
+    private String colorOld;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "color_id", nullable = true)
+    private Color color;
 
     @Column(name = "original_price", nullable = false, precision = 15, scale = 2)
     private BigDecimal originalPrice;

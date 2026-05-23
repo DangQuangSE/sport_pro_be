@@ -201,7 +201,7 @@ public class OrderService implements IOrderService {
                             .productName(item.getProductVariant().getProduct().getName())
                             .sku(item.getProductVariant().getSku())
                             .size(item.getProductVariant().getSize())
-                            .color(item.getProductVariant().getColor())
+                            .color(item.getProductVariant().getColor() != null ? item.getProductVariant().getColor().getName() : item.getProductVariant().getColorOld())
                             .quantity(item.getQuantity())
                             .price(item.getPrice());
 

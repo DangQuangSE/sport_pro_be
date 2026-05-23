@@ -18,7 +18,7 @@ public class ProductSpecification {
 
     public static Specification<Product> filterProducts(
             String keyword, Long categoryId, Long brandId, Gender gender, String size, String color,
-            BigDecimal minPrice, BigDecimal maxPrice, ProductStatus status) {
+            BigDecimal minPrice, BigDecimal maxPrice, Boolean isFeatured, ProductStatus status) {
 
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -46,6 +46,10 @@ public class ProductSpecification {
 
             if (gender != null) {
                 predicates.add(criteriaBuilder.equal(root.get("gender"), gender));
+            }
+
+            if (isFeatured != null) {
+                predicates.add(criteriaBuilder.equal(root.get("isFeatured"), isFeatured));
             }
 
             boolean hasSize = size != null && !size.isBlank();

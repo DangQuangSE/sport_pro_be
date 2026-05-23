@@ -1,6 +1,7 @@
 package com.sport_pro_be.modules.product.dto.request;
 
 import com.sport_pro_be.modules.product.enums.Gender;
+import com.sport_pro_be.modules.product.enums.ProductStatus;
 import com.sport_pro_be.modules.product.constant.ProductMessageConstant;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -23,6 +24,10 @@ public class ProductCreateRequest {
 
     @NotNull(message = ProductMessageConstant.GENDER_REQUIRED)
     private Gender gender;
+
+    private Boolean isFeatured;
+
+    private ProductStatus status;
 }
 
 
