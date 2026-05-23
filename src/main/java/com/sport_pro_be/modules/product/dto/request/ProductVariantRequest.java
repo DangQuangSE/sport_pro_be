@@ -20,8 +20,8 @@ public class ProductVariantRequest {
     @NotBlank(message = ProductMessageConstant.SIZE_REQUIRED)
     private String size;
 
-    @NotBlank(message = ProductMessageConstant.COLOR_REQUIRED)
-    private String color;
+    @NotNull(message = "Color selection is required")
+    private Long colorId;
 
     @Positive(message = ProductMessageConstant.PRICE_POSITIVE)
     @NotNull(message = ProductMessageConstant.PRICE_REQUIRED)

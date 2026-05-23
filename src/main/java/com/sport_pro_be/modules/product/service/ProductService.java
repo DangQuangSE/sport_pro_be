@@ -181,7 +181,11 @@ public class ProductService implements IProductService {
                         if (maxPrice == null || price.compareTo(maxPrice) > 0)
                                 maxPrice = price;
                         sizes.add(v.getSize());
-                        colors.add(v.getColor());
+                        if (v.getColor() != null) {
+                                colors.add(v.getColor().getName());
+                        } else if (v.getColorOld() != null) {
+                                colors.add(v.getColorOld());
+                        }
                         totalStock += v.getStockQuantity();
                         if (firstSku == null) {
                                 firstSku = v.getSku();
@@ -236,7 +240,9 @@ public class ProductService implements IProductService {
                                                 .id(v.getId())
                                                 .sku(v.getSku())
                                                 .size(v.getSize())
-                                                .color(v.getColor())
+                                                .colorId(v.getColor() != null ? v.getColor().getId() : null)
+                                                .colorName(v.getColor() != null ? v.getColor().getName() : v.getColorOld())
+                                                .colorHex(v.getColor() != null ? v.getColor().getHexCode() : "#000000")
                                                 .originalPrice(v.getOriginalPrice())
                                                 .salePrice(v.getSalePrice())
                                                 .stockQuantity(v.getStockQuantity())
@@ -250,8 +256,11 @@ public class ProductService implements IProductService {
                                 .slug(product.getSlug())
                                 .description(product.getDescription())
                                 .brandName(product.getBrand().getName())
+                                .brandId(product.getBrand().getId())
                                 .categoryName(product.getCategory().getName())
+                                .categoryId(product.getCategory().getId())
                                 .gender(product.getGender())
+                                .status(product.getStatus())
                                 .images(images)
                                 .variants(variants)
                                 .isFeatured(product.getIsFeatured())

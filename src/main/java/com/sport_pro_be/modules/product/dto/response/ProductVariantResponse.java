@@ -14,7 +14,9 @@ public class ProductVariantResponse {
     private Long id;
     private String sku;
     private String size;
-    private String color;
+    private Long colorId;
+    private String colorName;
+    private String colorHex;
     private BigDecimal originalPrice;
     private BigDecimal salePrice;
     private Integer stockQuantity;
