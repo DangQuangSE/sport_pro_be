@@ -67,7 +67,7 @@ public class ProductService implements IProductService {
                                 .category(category)
                                 .brand(brand)
                                 .gender(request.getGender())
-                                .status(ProductStatus.ACTIVE)
+                                .status(request.getStatus() != null ? request.getStatus() : ProductStatus.ACTIVE)
                                 .isFeatured(request.getIsFeatured() != null ? request.getIsFeatured() : false)
                                 .build();
 
