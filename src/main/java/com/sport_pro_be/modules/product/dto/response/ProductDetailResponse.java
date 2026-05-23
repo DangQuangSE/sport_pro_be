@@ -16,10 +16,14 @@ public class ProductDetailResponse {
     private String slug;
     private String description;
     private String brandName;
+    private Long brandId;
     private String categoryName;
+    private Long categoryId;
     private Gender gender;
+    private com.sport_pro_be.modules.product.enums.ProductStatus status;
     private List<ProductImageResponse> images;
     private List<ProductVariantResponse> variants;
+    private Boolean isFeatured;
 }
 
 

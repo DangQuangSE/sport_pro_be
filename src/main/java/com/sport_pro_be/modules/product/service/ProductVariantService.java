@@ -10,7 +10,11 @@ import com.sport_pro_be.modules.product.dto.response.ProductVariantResponse;
 import com.sport_pro_be.modules.product.interfaces.IProductVariantService;
 import com.sport_pro_be.modules.product.repository.ProductRepository;
 import com.sport_pro_be.modules.product.repository.ProductVariantRepository;
+import com.sport_pro_be.modules.color.constant.ColorMessageConstant;
+import com.sport_pro_be.modules.color.domain.Color;
+import com.sport_pro_be.modules.color.repository.ColorRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +24,11 @@ public class ProductVariantService implements IProductVariantService {
 
     private final ProductVariantRepository productVariantRepository;
     private final ProductRepository productRepository;
+    private final ColorRepository colorRepository;
 
     @Override
     @Transactional
+    @CacheEvict(value = { "products", "product_details" }, allEntries = true)
     public ProductVariantResponse createVariant(Long productId, ProductVariantRequest request) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException(ProductMessageConstant.PRODUCT_NOT_FOUND));
@@ -31,11 +37,14 @@ public class ProductVariantService implements IProductVariantService {
             throw new ConflictException(ProductMessageConstant.SKU_ALREADY_EXISTS);
         }
 
+        Color color = colorRepository.findById(request.getColorId())
+                .orElseThrow(() -> new ResourceNotFoundException(ColorMessageConstant.COLOR_NOT_FOUND));
+
         ProductVariant variant = ProductVariant.builder()
                 .product(product)
                 .sku(request.getSku())
                 .size(request.getSize())
-                .color(request.getColor())
+                .color(color)
                 .originalPrice(request.getOriginalPrice())
                 .salePrice(request.getSalePrice())
                 .stockQuantity(request.getStockQuantity())
@@ -48,6 +57,7 @@ public class ProductVariantService implements IProductVariantService {
 
     @Override
     @Transactional
+    @CacheEvict(value = { "products", "product_details" }, allEntries = true)
     public ProductVariantResponse updateVariant(Long variantId, ProductVariantRequest request) {
         ProductVariant variant = productVariantRepository.findById(variantId)
                 .orElseThrow(() -> new ResourceNotFoundException(ProductMessageConstant.VARIANT_NOT_FOUND));
@@ -56,9 +66,12 @@ public class ProductVariantService implements IProductVariantService {
             throw new ConflictException(ProductMessageConstant.SKU_ALREADY_EXISTS);
         }
 
+        Color color = colorRepository.findById(request.getColorId())
+                .orElseThrow(() -> new ResourceNotFoundException(ColorMessageConstant.COLOR_NOT_FOUND));
+
         variant.setSku(request.getSku());
         variant.setSize(request.getSize());
-        variant.setColor(request.getColor());
+        variant.setColor(color);
         variant.setOriginalPrice(request.getOriginalPrice());
         variant.setSalePrice(request.getSalePrice());
         variant.setStockQuantity(request.getStockQuantity());
@@ -70,6 +83,7 @@ public class ProductVariantService implements IProductVariantService {
 
     @Override
     @Transactional
+    @CacheEvict(value = { "products", "product_details" }, allEntries = true)
     public void deleteVariant(Long variantId) {
         ProductVariant variant = productVariantRepository.findById(variantId)
                 .orElseThrow(() -> new ResourceNotFoundException(ProductMessageConstant.VARIANT_NOT_FOUND));
@@ -81,7 +95,9 @@ public class ProductVariantService implements IProductVariantService {
                 .id(v.getId())
                 .sku(v.getSku())
                 .size(v.getSize())
-                .color(v.getColor())
+                .colorId(v.getColor() != null ? v.getColor().getId() : null)
+                .colorName(v.getColor() != null ? v.getColor().getName() : v.getColorOld())
+                .colorHex(v.getColor() != null ? v.getColor().getHexCode() : "#000000")
                 .originalPrice(v.getOriginalPrice())
                 .salePrice(v.getSalePrice())
                 .stockQuantity(v.getStockQuantity())

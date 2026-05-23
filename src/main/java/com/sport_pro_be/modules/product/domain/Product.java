@@ -79,6 +79,10 @@ public class Product extends AbstractAuditingEntity {
     @Column(nullable = false)
     @Builder.Default
     private Integer reviewCount = 0;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    private Boolean isFeatured = false;
 }
 
 

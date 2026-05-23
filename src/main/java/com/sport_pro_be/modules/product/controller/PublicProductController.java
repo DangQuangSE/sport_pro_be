@@ -79,10 +79,16 @@ public class PublicProductController {
             )
             @RequestParam(required = false) BigDecimal maxPrice,
 
+            @Parameter(
+                    description = "Filter by featured products. True to retrieve featured products, false for others.",
+                    required = false
+            )
+            @RequestParam(required = false) Boolean isFeatured,
+
             @ParameterObject
             @org.springframework.data.web.PageableDefault(size = 12, sort = "id", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         
-        Page<ProductListResponse> products = productService.getProducts(keyword, categoryId, brandId, gender, size, color, minPrice, maxPrice, ProductStatus.ACTIVE, pageable);
+        Page<ProductListResponse> products = productService.getProducts(keyword, categoryId, brandId, gender, size, color, minPrice, maxPrice, isFeatured, ProductStatus.ACTIVE, pageable);
         return ApiResponse.of(ProductMessageConstant.SUCCESS, products);
     }
 

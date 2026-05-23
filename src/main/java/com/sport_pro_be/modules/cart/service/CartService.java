@@ -145,7 +145,7 @@ public class CartService implements ICartService {
                     .productName(variant.getProduct().getName())
                     .productSlug(variant.getProduct().getSlug())
                     .size(variant.getSize())
-                    .color(variant.getColor())
+                    .color(variant.getColor() != null ? variant.getColor().getName() : variant.getColorOld())
                     .originalPrice(variant.getOriginalPrice())
                     .salePrice(variant.getSalePrice())
                     .quantity(item.getQuantity())

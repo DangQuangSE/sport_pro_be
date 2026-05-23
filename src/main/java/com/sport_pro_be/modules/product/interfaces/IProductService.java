@@ -15,7 +15,7 @@ public interface IProductService {
     ProductDetailResponse createProduct(ProductCreateRequest request);
     ProductDetailResponse updateProduct(Long id, ProductUpdateRequest request);
     void deleteProduct(Long id);
-    Page<ProductListResponse> getProducts(String keyword, Long categoryId, Long brandId, Gender gender, String size, String color, BigDecimal minPrice, BigDecimal maxPrice, ProductStatus status, Pageable pageable);
+    Page<ProductListResponse> getProducts(String keyword, Long categoryId, Long brandId, Gender gender, String size, String color, BigDecimal minPrice, BigDecimal maxPrice, Boolean isFeatured, ProductStatus status, Pageable pageable);
     ProductDetailResponse getProductById(Long id);
     ProductDetailResponse getProductBySlug(String slug);
 }
