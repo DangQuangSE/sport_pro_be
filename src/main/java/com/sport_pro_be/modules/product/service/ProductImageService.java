@@ -12,6 +12,7 @@ import com.sport_pro_be.modules.product.repository.ProductRepository;
 import com.sport_pro_be.modules.product.repository.ProductVariantRepository;
 import com.sport_pro_be.modules.upload.interfaces.IUploadService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +28,7 @@ public class ProductImageService implements IProductImageService {
 
     @Override
     @Transactional
+    @CacheEvict(value = { "products", "product_details" }, allEntries = true)
     public ProductImageResponse addImage(Long productId, MultipartFile file, Long variantId, Boolean isThumbnail, Integer sortOrder) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException(ProductMessageConstant.PRODUCT_NOT_FOUND));
@@ -60,6 +62,7 @@ public class ProductImageService implements IProductImageService {
 
     @Override
     @Transactional
+    @CacheEvict(value = { "products", "product_details" }, allEntries = true)
     public void deleteImage(Long imageId) {
         ProductImage productImage = productImageRepository.findById(imageId)
                 .orElseThrow(() -> new ResourceNotFoundException(ProductMessageConstant.IMAGE_NOT_FOUND));
