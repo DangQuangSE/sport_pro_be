@@ -1,0 +1,42 @@
+name: Deploy Spring Boot to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - feat/maintain
+  pull_request:
+    branches:
+      - main
+      - master
+      - feat/maintain
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'sport-pro-be' # Tên App Service trên Azure của bạn
+          # 🚨 CẢNH BÁO BẢO MẬT QUAN TRỌNG:
+          # KHÔNG ĐƯỢC dán trực tiếp nội dung file Publish Profile XML vào đây!
+          # Hãy tải file Publish Profile về từ Azure Portal và lưu nó vào mục GitHub Repository Secrets
+          # với tên là `AZURE_WEBAPP_PUBLISH_PROFILE`.
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: 'target/*.jar'
+
