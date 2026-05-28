@@ -19,6 +19,7 @@ import com.sport_pro_be.modules.order.interfaces.IOrderService;
 import com.sport_pro_be.modules.order.repository.OrderItemRepository;
 import com.sport_pro_be.modules.order.repository.OrderRepository;
 import com.sport_pro_be.modules.product.domain.ProductVariant;
+import com.sport_pro_be.modules.product.domain.ProductImage;
 import com.sport_pro_be.modules.product.repository.ProductVariantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +66,7 @@ public class OrderService implements IOrderService {
             itemsToOrder = cart.getItems().stream()
                     .filter(item -> request.getCartItemIds().contains(item.getId()))
                     .collect(Collectors.toList());
-            
+
             if (itemsToOrder.isEmpty()) {
                 throw new BadRequestException(OrderMessageConstant.INVALID_SELECTED_ITEMS);
             }
@@ -82,6 +83,8 @@ public class OrderService implements IOrderService {
                 .phoneNumber(request.getPhoneNumber())
                 .paymentMethod(request.getPaymentMethod())
                 .status(OrderStatus.PENDING)
+                .totalAmount(BigDecimal.ZERO)
+                .discountAmount(BigDecimal.ZERO)
                 .build();
 
         // Must save order first to satisfy foreign key for OrderItem
@@ -103,7 +106,8 @@ public class OrderService implements IOrderService {
             BigDecimal itemPrice = variant.getSalePrice() != null ? variant.getSalePrice() : variant.getOriginalPrice();
             BigDecimal itemTotal = itemPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity()));
 
-            // Add printing price if this item has a custom design (snapshot price stored in design)
+            // Add printing price if this item has a custom design (snapshot price stored in
+            // design)
             if (cartItem.getCustomDesign() != null) {
                 itemTotal = itemTotal.add(cartItem.getCustomDesign().getTotalPrintingPrice());
             }
@@ -125,7 +129,8 @@ public class OrderService implements IOrderService {
         // Handle Coupon
         BigDecimal discountAmount = BigDecimal.ZERO;
         if (request.getCouponCode() != null && !request.getCouponCode().isBlank()) {
-            com.sport_pro_be.modules.coupon.domain.Coupon coupon = couponService.validateAndGetCoupon(request.getCouponCode(), user, totalAmount);
+            com.sport_pro_be.modules.coupon.domain.Coupon coupon = couponService
+                    .validateAndGetCoupon(request.getCouponCode(), user, totalAmount);
             discountAmount = couponService.calculateDiscount(coupon, totalAmount);
             order.setCoupon(coupon);
             coupon.setUsedCount(coupon.getUsedCount() + 1);
@@ -160,8 +165,9 @@ public class OrderService implements IOrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<OrderResponse> getAllOrders(Pageable pageable) {
-        return orderRepository.findAll(pageable).map(this::mapToOrderResponse);
+    public Page<OrderResponse> getAllOrders(String search, OrderStatus status, Pageable pageable) {
+        String cleanSearch = (search == null || search.trim().isEmpty()) ? null : search.trim();
+        return orderRepository.searchOrders(cleanSearch, status, pageable).map(this::mapToOrderResponse);
     }
 
     @Override
@@ -178,7 +184,7 @@ public class OrderService implements IOrderService {
     public OrderResponse updateOrderStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(OrderMessageConstant.ORDER_NOT_FOUND));
-        
+
         if (status == OrderStatus.DELIVERED && order.getStatus() != OrderStatus.DELIVERED) {
             User user = order.getUser();
             user.setTotalSpending(user.getTotalSpending().add(order.getTotalAmount()));
@@ -188,7 +194,7 @@ public class OrderService implements IOrderService {
 
         order.setStatus(status);
         orderRepository.save(order);
-        
+
         return mapToOrderResponse(order);
     }
 
@@ -201,14 +207,26 @@ public class OrderService implements IOrderService {
                             .productName(item.getProductVariant().getProduct().getName())
                             .sku(item.getProductVariant().getSku())
                             .size(item.getProductVariant().getSize())
-                            .color(item.getProductVariant().getColor() != null ? item.getProductVariant().getColor().getName() : item.getProductVariant().getColorOld())
+                            .color(item.getProductVariant().getColor() != null
+                                    ? item.getProductVariant().getColor().getName()
+                                    : item.getProductVariant().getColorOld())
                             .quantity(item.getQuantity())
                             .price(item.getPrice());
 
                     if (item.getCustomDesign() != null) {
                         builder.customDesignId(item.getCustomDesign().getId())
-                               .designImageUrl(item.getCustomDesign().getDesignImageUrl())
-                               .printingPrice(item.getCustomDesign().getTotalPrintingPrice());
+                                .designImageUrl(item.getCustomDesign().getDesignImageUrl())
+                                .printingPrice(item.getCustomDesign().getTotalPrintingPrice());
+                    } else {
+                        String defaultImageUrl = item.getProductVariant().getProduct().getImages().stream()
+                                .filter(img -> Boolean.TRUE.equals(img.getIsThumbnail()))
+                                .map(ProductImage::getImageUrl)
+                                .findFirst()
+                                .orElseGet(() -> item.getProductVariant().getProduct().getImages().stream()
+                                        .map(ProductImage::getImageUrl)
+                                        .findFirst()
+                                        .orElse(null));
+                        builder.designImageUrl(defaultImageUrl);
                     }
                     return builder.build();
                 })

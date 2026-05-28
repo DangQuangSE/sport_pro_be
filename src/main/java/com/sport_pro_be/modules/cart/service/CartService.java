@@ -16,6 +16,7 @@ import com.sport_pro_be.modules.cart.repository.CartRepository;
 import com.sport_pro_be.modules.custom_design.domain.CustomDesign;
 import com.sport_pro_be.modules.custom_design.interfaces.ICustomDesignService;
 import com.sport_pro_be.modules.product.domain.ProductVariant;
+import com.sport_pro_be.modules.product.domain.ProductImage;
 import com.sport_pro_be.modules.product.enums.ProductStatus;
 import com.sport_pro_be.modules.product.repository.ProductVariantRepository;
 import lombok.RequiredArgsConstructor;
@@ -70,7 +71,12 @@ public class CartService implements ICartService {
                 .findFirst();
 
         int currentQuantity = existingItemOpt.map(CartItem::getQuantity).orElse(0);
-        int newQuantity = currentQuantity + request.getQuantity();
+        int newQuantity;
+        if (Boolean.TRUE.equals(request.getIsReplace())) {
+            newQuantity = request.getQuantity();
+        } else {
+            newQuantity = currentQuantity + request.getQuantity();
+        }
 
         if (newQuantity > variant.getStockQuantity()) {
             throw new BadRequestException(CartMessageConstant.OUT_OF_STOCK);
@@ -156,6 +162,16 @@ public class CartService implements ICartService {
                         .customDesignId(item.getCustomDesign().getId())
                         .designImageUrl(item.getCustomDesign().getDesignImageUrl())
                         .printingPrice(printingPrice);
+            } else {
+                String defaultImageUrl = variant.getProduct().getImages().stream()
+                        .filter(img -> Boolean.TRUE.equals(img.getIsThumbnail()))
+                        .map(ProductImage::getImageUrl)
+                        .findFirst()
+                        .orElseGet(() -> variant.getProduct().getImages().stream()
+                                .map(ProductImage::getImageUrl)
+                                .findFirst()
+                                .orElse(null));
+                responseBuilder.designImageUrl(defaultImageUrl);
             }
 
             itemResponses.add(responseBuilder.build());
