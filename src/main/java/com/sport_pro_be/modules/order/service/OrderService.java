@@ -82,6 +82,8 @@ public class OrderService implements IOrderService {
                 .phoneNumber(request.getPhoneNumber())
                 .paymentMethod(request.getPaymentMethod())
                 .status(OrderStatus.PENDING)
+                .totalAmount(BigDecimal.ZERO)
+                .discountAmount(BigDecimal.ZERO)
                 .build();
 
         // Must save order first to satisfy foreign key for OrderItem
@@ -160,8 +162,9 @@ public class OrderService implements IOrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<OrderResponse> getAllOrders(Pageable pageable) {
-        return orderRepository.findAll(pageable).map(this::mapToOrderResponse);
+    public Page<OrderResponse> getAllOrders(String search, OrderStatus status, Pageable pageable) {
+        String cleanSearch = (search == null || search.trim().isEmpty()) ? null : search.trim();
+        return orderRepository.searchOrders(cleanSearch, status, pageable).map(this::mapToOrderResponse);
     }
 
     @Override
