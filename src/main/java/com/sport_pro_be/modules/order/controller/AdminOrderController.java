@@ -22,8 +22,11 @@ public class AdminOrderController {
     private final IOrderService orderService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getAllOrders(Pageable pageable) {
-        Page<OrderResponse> response = orderService.getAllOrders(pageable);
+    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getAllOrders(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) com.sport_pro_be.modules.order.enums.OrderStatus status,
+            Pageable pageable) {
+        Page<OrderResponse> response = orderService.getAllOrders(search, status, pageable);
         return ResponseEntity.ok(ApiResponse.of(OrderMessageConstant.ALL_ORDERS_RETRIEVED, response));
     }
 

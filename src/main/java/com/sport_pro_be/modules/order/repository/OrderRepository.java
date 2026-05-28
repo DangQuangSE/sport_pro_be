@@ -18,6 +18,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @EntityGraph(attributePaths = {"items", "items.productVariant", "items.productVariant.product"})
     Optional<Order> findByIdAndUserId(Long id, Long userId);
 
+    @EntityGraph(attributePaths = {"items", "items.productVariant", "items.productVariant.product"})
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT o FROM Order o WHERE " +
+        "(:status IS NULL OR o.status = :status) AND " +
+        "(:search IS NULL OR o.phoneNumber LIKE %:search% OR CAST(o.id AS string) LIKE %:search% OR o.shippingAddress LIKE %:search%)"
+    )
+    Page<Order> searchOrders(
+            @org.springframework.data.repository.query.Param("search") String search,
+            @org.springframework.data.repository.query.Param("status") com.sport_pro_be.modules.order.enums.OrderStatus status,
+            Pageable pageable);
+
     @org.springframework.data.jpa.repository.Query("SELECT new com.sport_pro_be.modules.analytics.dto.RevenueReportResponse(CAST(o.createdAt AS LocalDate), SUM(o.totalAmount)) " +
            "FROM Order o WHERE o.status = 'DELIVERED' " +
            "AND o.createdAt >= :start AND o.createdAt <= :end " +
