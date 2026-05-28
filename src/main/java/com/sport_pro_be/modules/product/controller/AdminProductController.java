@@ -62,7 +62,6 @@ public class AdminProductController {
                     required = false
             )
             @RequestParam(required = false) Long brandId,
-
             @Parameter(
                     description = "Target gender of the product (MALE, FEMALE, UNISEX). Leave blank to retrieve all.",
                     required = false

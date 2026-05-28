@@ -23,4 +23,7 @@ public class CartItemRequest {
 
     // Optional: attach a custom design to this cart item
     private Long customDesignId;
+
+    // Optional: if true, replace quantity instead of adding
+    private Boolean isReplace;
 }
