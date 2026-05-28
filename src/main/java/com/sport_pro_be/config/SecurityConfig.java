@@ -53,6 +53,7 @@ public class SecurityConfig {
                 "/api/auth/**",
                 "/api/categories/**",
                 "/api/brands/**",
+                "/api/colors/**",
                 "/api/products/**"
         };
 
