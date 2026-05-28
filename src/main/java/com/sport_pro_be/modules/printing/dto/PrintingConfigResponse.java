@@ -2,6 +2,7 @@ package com.sport_pro_be.modules.printing.dto;
 
 import com.sport_pro_be.modules.printing.domain.PrintingMaterial;
 import com.sport_pro_be.modules.printing.domain.PrintingPriceConfig;
+import com.sport_pro_be.modules.printing.domain.PrintingColor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,4 +17,5 @@ import java.util.List;
 public class PrintingConfigResponse {
     private List<PrintingMaterial> materials;
     private List<PrintingPriceConfig> priceConfigs;
+    private List<PrintingColor> colors;
 }
