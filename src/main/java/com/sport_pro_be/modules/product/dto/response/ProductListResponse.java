@@ -33,6 +33,7 @@ public class ProductListResponse {
     private Integer totalStock;
     private Double averageRating;
     private Boolean isFeatured;
+    private Boolean isCustomizable;
 }
 
 

@@ -155,7 +155,8 @@ public class CartService implements ICartService {
                     .originalPrice(variant.getOriginalPrice())
                     .salePrice(variant.getSalePrice())
                     .quantity(item.getQuantity())
-                    .itemTotal(itemTotal);
+                    .itemTotal(itemTotal)
+                    .isCustomizable(variant.getProduct().getCategory() != null && variant.getProduct().getCategory().isCustomizable());
 
             if (item.getCustomDesign() != null) {
                 responseBuilder

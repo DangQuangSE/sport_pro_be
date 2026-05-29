@@ -15,6 +15,7 @@ public class CategoryResponse {
     private Long parentId;
     private String imageUrl;
     private boolean isActive;
+    private boolean isCustomizable;
     private Integer displayOrder;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
