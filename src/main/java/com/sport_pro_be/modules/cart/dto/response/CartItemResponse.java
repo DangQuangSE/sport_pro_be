@@ -26,5 +26,6 @@ public class CartItemResponse {
     private Long customDesignId;
     private String designImageUrl;
     private BigDecimal printingPrice;
+    private Boolean isCustomizable;
 }
 

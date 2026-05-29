@@ -16,5 +16,6 @@ public class CategoryRequest {
     private String imageUrl;
     private Integer displayOrder;
     private Boolean isActive;
+    private Boolean isCustomizable;
 }
 
