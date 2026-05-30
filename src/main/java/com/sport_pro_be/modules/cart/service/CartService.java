@@ -158,20 +158,23 @@ public class CartService implements ICartService {
                     .itemTotal(itemTotal)
                     .isCustomizable(variant.getProduct().getCategory() != null && variant.getProduct().getCategory().isCustomizable());
 
+            String defaultImageUrl = variant.getProduct().getImages().stream()
+                    .filter(img -> Boolean.TRUE.equals(img.getIsThumbnail()))
+                    .map(ProductImage::getImageUrl)
+                    .findFirst()
+                    .orElseGet(() -> variant.getProduct().getImages().stream()
+                            .map(ProductImage::getImageUrl)
+                            .findFirst()
+                            .orElse(null));
+
+            responseBuilder.productImageUrl(defaultImageUrl);
+
             if (item.getCustomDesign() != null) {
                 responseBuilder
                         .customDesignId(item.getCustomDesign().getId())
                         .designImageUrl(item.getCustomDesign().getDesignImageUrl())
                         .printingPrice(printingPrice);
             } else {
-                String defaultImageUrl = variant.getProduct().getImages().stream()
-                        .filter(img -> Boolean.TRUE.equals(img.getIsThumbnail()))
-                        .map(ProductImage::getImageUrl)
-                        .findFirst()
-                        .orElseGet(() -> variant.getProduct().getImages().stream()
-                                .map(ProductImage::getImageUrl)
-                                .findFirst()
-                                .orElse(null));
                 responseBuilder.designImageUrl(defaultImageUrl);
             }
 
