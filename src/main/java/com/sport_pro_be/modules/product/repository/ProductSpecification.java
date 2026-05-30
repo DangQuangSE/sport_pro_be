@@ -63,7 +63,10 @@ public class ProductSpecification {
                 }
 
                 if (hasColor) {
-                    predicates.add(criteriaBuilder.equal(variantJoin.get("color"), color));
+                    predicates.add(criteriaBuilder.or(
+                            criteriaBuilder.equal(variantJoin.get("color").get("name"), color),
+                            criteriaBuilder.equal(variantJoin.get("colorOld"), color)
+                    ));
                 }
 
                 if (minPrice != null) {
