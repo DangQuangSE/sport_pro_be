@@ -65,6 +65,7 @@ public class ProfileService implements IProfileService {
                 .avatar(user.getAvatar())
                 .role(user.getRole().name())
                 .tier(user.getTier().name())
+                .totalSpending(user.getTotalSpending())
                 .build();
     }
 }
