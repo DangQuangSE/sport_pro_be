@@ -222,6 +222,7 @@ public class ProductService implements IProductService {
                                 .totalStock(totalStock)
                                 .averageRating(product.getAverageRating())
                                 .isFeatured(product.getIsFeatured())
+                                .isCustomizable(product.getCategory() != null && product.getCategory().isCustomizable())
                                 .build();
         }
 
@@ -264,6 +265,7 @@ public class ProductService implements IProductService {
                                 .images(images)
                                 .variants(variants)
                                 .isFeatured(product.getIsFeatured())
+                                .isCustomizable(product.getCategory() != null && product.getCategory().isCustomizable())
                                 .build();
         }
 }

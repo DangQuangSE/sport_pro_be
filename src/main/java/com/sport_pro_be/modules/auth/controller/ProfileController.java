@@ -18,6 +18,7 @@ public class ProfileController {
 
     private final IProfileService profileService;
 
+
     @GetMapping("/me")
     public ApiResponse<UserProfileResponse> getMyProfile() {
         Long userId = SecurityUtils.getCurrentUserId();

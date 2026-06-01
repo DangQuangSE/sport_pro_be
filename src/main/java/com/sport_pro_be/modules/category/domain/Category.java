@@ -37,6 +37,9 @@ public class Category extends AbstractAuditingEntity {
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
+    @Column(name = "is_customizable", nullable = false, columnDefinition = "boolean default false")
+    private boolean isCustomizable = false;
+
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder = 0;
 

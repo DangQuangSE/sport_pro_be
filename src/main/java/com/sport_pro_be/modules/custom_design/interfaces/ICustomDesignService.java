@@ -28,4 +28,10 @@ public interface ICustomDesignService {
      * Retrieves the CustomDesign entity after verifying ownership. Used internally by CartService / OrderService.
      */
     CustomDesign findAndVerifyOwnership(Long userId, Long designId);
+
+    /**
+     * Returns the details of a specific design for administration/printing purposes (no ownership check).
+     */
+    CustomDesignResponse getDesignDetailAdmin(Long designId);
 }
+

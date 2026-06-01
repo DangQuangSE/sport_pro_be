@@ -13,6 +13,7 @@ public class CategoryTreeResponse {
     private String slug;
     private String imageUrl;
     private Integer displayOrder;
+    private boolean isCustomizable;
     private List<CategoryTreeResponse> children;
 }
 
