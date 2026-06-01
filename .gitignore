@@ -31,14 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
-
-### Secret Files - NEVER commit ###
 .env
-.env.*
-!.env.example
-*.pem
-*.key
-*_rsa
-*_ecdsa
-*_ed25519
-*.tar.gz
+
