@@ -74,10 +74,19 @@ public class CustomDesignService implements ICustomDesignService {
 
     @Override
     @Transactional(readOnly = true)
+    public CustomDesignResponse getDesignDetailAdmin(Long designId) {
+        CustomDesign design = customDesignRepository.findById(designId)
+                .orElseThrow(() -> new AppException(CustomDesignMessageConstant.DESIGN_NOT_FOUND, HttpStatus.NOT_FOUND));
+        return mapToResponse(design);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public CustomDesign findAndVerifyOwnership(Long userId, Long designId) {
         return customDesignRepository.findByIdAndUserId(designId, userId)
                 .orElseThrow(() -> new AppException(CustomDesignMessageConstant.DESIGN_NOT_FOUND, HttpStatus.NOT_FOUND));
     }
+
 
     // ──────────────────────────────────────────────
     // Private helpers

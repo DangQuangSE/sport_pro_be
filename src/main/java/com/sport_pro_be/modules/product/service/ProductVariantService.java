@@ -45,6 +45,7 @@ public class ProductVariantService implements IProductVariantService {
                 .sku(request.getSku())
                 .size(request.getSize())
                 .color(color)
+                .colorOld(color.getName())
                 .originalPrice(request.getOriginalPrice())
                 .salePrice(request.getSalePrice())
                 .stockQuantity(request.getStockQuantity())
@@ -72,6 +73,7 @@ public class ProductVariantService implements IProductVariantService {
         variant.setSku(request.getSku());
         variant.setSize(request.getSize());
         variant.setColor(color);
+        variant.setColorOld(color.getName());
         variant.setOriginalPrice(request.getOriginalPrice());
         variant.setSalePrice(request.getSalePrice());
         variant.setStockQuantity(request.getStockQuantity());

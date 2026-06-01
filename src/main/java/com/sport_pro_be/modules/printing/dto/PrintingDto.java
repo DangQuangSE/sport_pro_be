@@ -36,4 +36,15 @@ public class PrintingDto {
         
         private String description;
     }
+
+    @Data
+    public static class ColorRequest {
+        @NotBlank(message = PrintingMessageConstant.NAME_REQUIRED)
+        private String name;
+
+        @NotBlank(message = PrintingMessageConstant.HEX_CODE_REQUIRED)
+        private String hexCode;
+
+        private Boolean isActive = true;
+    }
 }

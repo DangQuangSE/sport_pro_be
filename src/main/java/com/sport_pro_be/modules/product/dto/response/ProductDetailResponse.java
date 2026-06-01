@@ -24,6 +24,7 @@ public class ProductDetailResponse {
     private List<ProductImageResponse> images;
     private List<ProductVariantResponse> variants;
     private Boolean isFeatured;
+    private Boolean isCustomizable;
 }
 
 

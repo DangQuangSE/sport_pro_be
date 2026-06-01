@@ -158,6 +158,9 @@ public class CategoryServiceImpl implements ICategoryService {
         if (request.getIsActive() != null) {
             category.setActive(request.getIsActive());
         }
+        if (request.getIsCustomizable() != null) {
+            category.setCustomizable(request.getIsCustomizable());
+        }
     }
 
     private CategoryResponse mapEntityToResponse(Category category) {
@@ -169,6 +172,7 @@ public class CategoryServiceImpl implements ICategoryService {
                 .parentId(category.getParentId())
                 .imageUrl(category.getImageUrl())
                 .isActive(category.isActive())
+                .isCustomizable(category.isCustomizable())
                 .displayOrder(category.getDisplayOrder())
                 .createdAt(category.getCreatedAt())
                 .updatedAt(category.getUpdatedAt())
@@ -189,6 +193,7 @@ public class CategoryServiceImpl implements ICategoryService {
                 .slug(category.getSlug())
                 .imageUrl(category.getImageUrl())
                 .displayOrder(category.getDisplayOrder())
+                .isCustomizable(category.isCustomizable())
                 .children(children)
                 .build();
     }

@@ -56,6 +56,14 @@ public class ProfileService implements IProfileService {
         return mapToResponse(user);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<UserProfileResponse> getAllProfiles() {
+        return userRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     private UserProfileResponse mapToResponse(User user) {
         return UserProfileResponse.builder()
                 .id(user.getId())
@@ -65,6 +73,7 @@ public class ProfileService implements IProfileService {
                 .avatar(user.getAvatar())
                 .role(user.getRole().name())
                 .tier(user.getTier().name())
+                .totalSpending(user.getTotalSpending())
                 .build();
     }
 }
