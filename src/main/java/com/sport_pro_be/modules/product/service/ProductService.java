@@ -266,6 +266,8 @@ public class ProductService implements IProductService {
                                 .variants(variants)
                                 .isFeatured(product.getIsFeatured())
                                 .isCustomizable(product.getCategory() != null && product.getCategory().isCustomizable())
+                                .averageRating(product.getAverageRating())
+                                .reviewCount(product.getReviewCount())
                                 .build();
         }
 }
