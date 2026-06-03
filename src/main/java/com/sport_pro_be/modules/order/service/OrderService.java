@@ -211,7 +211,8 @@ public class OrderService implements IOrderService {
                                     ? item.getProductVariant().getColor().getName()
                                     : item.getProductVariant().getColorOld())
                             .quantity(item.getQuantity())
-                            .price(item.getPrice());
+                            .price(item.getPrice())
+                            .isReviewed(item.getReview() != null);
 
                     if (item.getCustomDesign() != null) {
                         builder.customDesignId(item.getCustomDesign().getId())

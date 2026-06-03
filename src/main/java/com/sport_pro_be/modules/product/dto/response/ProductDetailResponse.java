@@ -25,6 +25,8 @@ public class ProductDetailResponse {
     private List<ProductVariantResponse> variants;
     private Boolean isFeatured;
     private Boolean isCustomizable;
+    private Double averageRating;
+    private Integer reviewCount;
 }
 
 

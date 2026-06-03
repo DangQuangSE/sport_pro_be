@@ -20,5 +20,6 @@ public class OrderItemResponse {
     private Long customDesignId;
     private String designImageUrl;
     private BigDecimal printingPrice;
+    private Boolean isReviewed;
 }
 
