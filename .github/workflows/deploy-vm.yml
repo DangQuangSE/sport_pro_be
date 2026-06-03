@@ -53,6 +53,9 @@ jobs:
             sudo docker run -d \
               --name sport-pro-be \
               --restart unless-stopped \
+              --memory="700m" \
+              --memory-swap="2g" \
+              --cpus="1" \
               -p 80:8080 \
               --env-file ~/app/.env \
               sport-pro-be
