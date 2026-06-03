@@ -14,4 +14,5 @@ public interface IReviewService {
     Page<ReviewResponse> getProductReviews(Long productId, Pageable pageable);
     void deleteReview(Long reviewId);
     ReviewResponse replyReview(Long reviewId, String replyComment);
+    Page<ReviewResponse> getAllReviews(Pageable pageable);
 }

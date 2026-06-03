@@ -128,6 +128,12 @@ public class ReviewService implements IReviewService {
         return mapToResponse(reviewRepository.save(review));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReviewResponse> getAllReviews(Pageable pageable) {
+        return reviewRepository.findAll(pageable).map(this::mapToResponse);
+    }
+
     private void updateProductRatingSummary(Product product) {
         List<ProductReview> reviews = reviewRepository.findByProductIdAndIsActiveTrue(product.getId());
         int count = reviews.size();
