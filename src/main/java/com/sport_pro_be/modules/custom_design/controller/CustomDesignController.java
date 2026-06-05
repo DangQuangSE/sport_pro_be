@@ -33,9 +33,10 @@ public class CustomDesignController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CustomDesignResponse>> saveDesign(
             @RequestPart("file") MultipartFile file,
+            @RequestPart(value = "backFile", required = false) MultipartFile backFile,
             @Valid @RequestPart("data") CustomDesignRequest request) {
         Long userId = SecurityUtils.getCurrentUserId();
-        CustomDesignResponse response = customDesignService.saveDesign(userId, file, request);
+        CustomDesignResponse response = customDesignService.saveDesign(userId, file, backFile, request);
         return ResponseEntity.ok(ApiResponse.of(CustomDesignMessageConstant.DESIGN_SAVED_SUCCESS, response));
     }
 

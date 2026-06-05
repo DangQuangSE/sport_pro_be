@@ -12,7 +12,7 @@ public interface ICustomDesignService {
     /**
      * Saves a new custom design (uploads image to Cloudinary, calculates price, persists to DB).
      */
-    CustomDesignResponse saveDesign(Long userId, MultipartFile file, CustomDesignRequest request);
+    CustomDesignResponse saveDesign(Long userId, MultipartFile file, MultipartFile backFile, CustomDesignRequest request);
 
     /**
      * Returns a paginated list of designs belonging to the authenticated user.

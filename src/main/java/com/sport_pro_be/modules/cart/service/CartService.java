@@ -173,6 +173,7 @@ public class CartService implements ICartService {
                 responseBuilder
                         .customDesignId(item.getCustomDesign().getId())
                         .designImageUrl(item.getCustomDesign().getDesignImageUrl())
+                        .backDesignImageUrl(item.getCustomDesign().getBackDesignImageUrl())
                         .printingPrice(printingPrice);
             } else {
                 responseBuilder.designImageUrl(defaultImageUrl);
