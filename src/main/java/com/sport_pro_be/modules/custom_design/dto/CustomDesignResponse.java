@@ -12,6 +12,7 @@ public class CustomDesignResponse {
 
     private Long id;
     private String designImageUrl;
+    private String backDesignImageUrl;
     private String designMetadata;
     private Long printingMaterialId;
     private String printingMaterialName;
