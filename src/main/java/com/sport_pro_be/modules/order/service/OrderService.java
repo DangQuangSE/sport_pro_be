@@ -217,6 +217,7 @@ public class OrderService implements IOrderService {
                     if (item.getCustomDesign() != null) {
                         builder.customDesignId(item.getCustomDesign().getId())
                                 .designImageUrl(item.getCustomDesign().getDesignImageUrl())
+                                .backDesignImageUrl(item.getCustomDesign().getBackDesignImageUrl())
                                 .printingPrice(item.getCustomDesign().getTotalPrintingPrice());
                     } else {
                         String defaultImageUrl = item.getProductVariant().getProduct().getImages().stream()

@@ -19,6 +19,7 @@ public class OrderItemResponse {
     // Custom design info (null if no design attached)
     private Long customDesignId;
     private String designImageUrl;
+    private String backDesignImageUrl;
     private BigDecimal printingPrice;
     private Boolean isReviewed;
 }

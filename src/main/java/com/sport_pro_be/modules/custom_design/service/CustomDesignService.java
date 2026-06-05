@@ -39,21 +39,39 @@ public class CustomDesignService implements ICustomDesignService {
     private final IUploadService uploadService;
 
     @Override
-    public CustomDesignResponse saveDesign(Long userId, MultipartFile file, CustomDesignRequest request) {
+    public CustomDesignResponse saveDesign(Long userId, MultipartFile file, MultipartFile backFile, CustomDesignRequest request) {
         // Step 1: Validate file (outside transaction)
         uploadService.validateFile(file);
+        if (backFile != null) {
+            uploadService.validateFile(backFile);
+        }
 
         // Step 2: Upload to Cloudinary (outside @Transactional — rule_be #5: never hold DB connection during external API calls)
-        log.info("Uploading custom design image for user id: {}", userId);
+        log.info("Uploading custom design images for user id: {}", userId);
         String imageUrl = uploadService.uploadFile(file, CustomDesignMessageConstant.UPLOAD_FOLDER);
+        String backImageUrl = null;
+        if (backFile != null) {
+            try {
+                backImageUrl = uploadService.uploadFile(backFile, CustomDesignMessageConstant.UPLOAD_FOLDER);
+            } catch (Exception e) {
+                log.warn("Back image upload failed. Deleting uploaded front image: {}", imageUrl);
+                uploadService.deleteFile(imageUrl);
+                throw e;
+            }
+        } else {
+            backImageUrl = imageUrl;
+        }
 
         // Step 3: Persist to DB (short, focused @Transactional)
         try {
-            return persistDesign(userId, imageUrl, request);
+            return persistDesign(userId, imageUrl, backImageUrl, request);
         } catch (Exception e) {
-            // Compensating action: delete orphaned image from Cloudinary
-            log.warn("DB save failed after Cloudinary upload. Deleting orphaned image: {}", imageUrl);
+            // Compensating action: delete orphaned images from Cloudinary
+            log.warn("DB save failed after Cloudinary upload. Deleting orphaned images: {}, {}", imageUrl, backImageUrl);
             uploadService.deleteFile(imageUrl);
+            if (backFile != null && backImageUrl != null && !backImageUrl.equals(imageUrl)) {
+                uploadService.deleteFile(backImageUrl);
+            }
             throw e;
         }
     }
@@ -93,7 +111,7 @@ public class CustomDesignService implements ICustomDesignService {
     // ──────────────────────────────────────────────
 
     @Transactional
-    protected CustomDesignResponse persistDesign(Long userId, String imageUrl, CustomDesignRequest request) {
+    protected CustomDesignResponse persistDesign(Long userId, String imageUrl, String backImageUrl, CustomDesignRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(CustomDesignMessageConstant.DESIGN_NOT_FOUND));
 
@@ -106,6 +124,7 @@ public class CustomDesignService implements ICustomDesignService {
                 .user(user)
                 .printingMaterial(material)
                 .designImageUrl(imageUrl)
+                .backDesignImageUrl(backImageUrl)
                 .designMetadata(request.getMetadata())
                 .numTextLines(request.getNumTextLines())
                 .numImages(request.getNumImages())
@@ -145,6 +164,7 @@ public class CustomDesignService implements ICustomDesignService {
         return CustomDesignResponse.builder()
                 .id(design.getId())
                 .designImageUrl(design.getDesignImageUrl())
+                .backDesignImageUrl(design.getBackDesignImageUrl())
                 .designMetadata(design.getDesignMetadata())
                 .printingMaterialId(design.getPrintingMaterial().getId())
                 .printingMaterialName(design.getPrintingMaterial().getName())
