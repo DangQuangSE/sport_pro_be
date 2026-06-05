@@ -32,6 +32,9 @@ public class CustomDesign extends AbstractAuditingEntity {
     @Column(name = "design_image_url", nullable = false, columnDefinition = "TEXT")
     private String designImageUrl;
 
+    @Column(name = "back_design_image_url", columnDefinition = "TEXT")
+    private String backDesignImageUrl;
+
     @Column(name = "design_metadata", columnDefinition = "TEXT")
     private String designMetadata;
 
