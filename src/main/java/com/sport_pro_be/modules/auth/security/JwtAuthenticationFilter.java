@@ -45,6 +45,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Query user to verify token version has not been revoked
                 User user = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new RuntimeException("User not found"));
 
+                if (!user.isActive()) {
+                    throw new RuntimeException("Account has been deleted.");
+                }
+
                 if (!user.getTokenVersion().equals(tokenVersion)) {
                     throw new RuntimeException("Token has been revoked or expired context.");
                 }
