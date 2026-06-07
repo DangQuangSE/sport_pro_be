@@ -12,5 +12,6 @@ public record UserProfileResponse(
     String avatar,
     String role,
     String tier,
-    BigDecimal totalSpending
+    BigDecimal totalSpending,
+    boolean isActive
 ) {}
