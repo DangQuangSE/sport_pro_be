@@ -29,6 +29,8 @@ public class ProductUpdateRequest {
     private ProductStatus status;
 
     private Boolean isFeatured;
+
+    private Long sizeGroupId;
 }
 
 

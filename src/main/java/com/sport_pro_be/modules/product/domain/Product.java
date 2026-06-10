@@ -2,6 +2,7 @@ package com.sport_pro_be.modules.product.domain;
 
 import com.sport_pro_be.modules.brand.domain.Brand;
 import com.sport_pro_be.modules.category.domain.Category;
+import com.sport_pro_be.modules.size.domain.SizeGroup;
 import com.sport_pro_be.common.AbstractAuditingEntity;
 import com.sport_pro_be.modules.product.enums.Gender;
 import com.sport_pro_be.modules.product.enums.ProductStatus;
@@ -18,6 +19,7 @@ import java.util.List;
 @Table(name = "products", indexes = {
         @Index(name = "idx_product_category_id", columnList = "category_id"),
         @Index(name = "idx_product_brand_id", columnList = "brand_id"),
+        @Index(name = "idx_product_size_group_id", columnList = "size_group_id"),
         @Index(name = "idx_product_status", columnList = "status"),
         @Index(name = "idx_product_gender", columnList = "gender"),
         @Index(name = "idx_product_slug", columnList = "slug"),
@@ -52,6 +54,10 @@ public class Product extends AbstractAuditingEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "brand_id", nullable = false)
     private Brand brand;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "size_group_id")
+    private SizeGroup sizeGroup;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

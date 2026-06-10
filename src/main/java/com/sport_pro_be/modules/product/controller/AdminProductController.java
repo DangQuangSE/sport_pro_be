@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/products")
@@ -135,6 +136,11 @@ public class AdminProductController {
     @PostMapping("/{productId}/variants")
     public ApiResponse<ProductVariantResponse> createVariant(@PathVariable Long productId, @Valid @RequestBody ProductVariantRequest request) {
         return ApiResponse.of(ProductMessageConstant.VARIANT_CREATED, productVariantService.createVariant(productId, request));
+    }
+
+    @PostMapping("/{productId}/variants/batch")
+    public ApiResponse<List<ProductVariantResponse>> createVariantsBatch(@PathVariable Long productId, @Valid @RequestBody List<ProductVariantRequest> requests) {
+        return ApiResponse.of(ProductMessageConstant.VARIANT_CREATED, productVariantService.createVariantsBatch(productId, requests));
     }
     // Images
     @PostMapping(value = "/{productId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

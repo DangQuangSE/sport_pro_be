@@ -4,6 +4,8 @@ import com.sport_pro_be.modules.brand.domain.Brand;
 import com.sport_pro_be.modules.brand.repository.BrandRepository;
 import com.sport_pro_be.modules.category.domain.Category;
 import com.sport_pro_be.modules.category.repository.CategoryRepository;
+import com.sport_pro_be.modules.size.domain.SizeGroup;
+import com.sport_pro_be.modules.size.repository.SizeGroupRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import com.sport_pro_be.common.SlugUtils;
@@ -45,6 +47,7 @@ public class ProductService implements IProductService {
         private final ProductRepository productRepository;
         private final CategoryRepository categoryRepository;
         private final BrandRepository brandRepository;
+        private final SizeGroupRepository sizeGroupRepository;
 
         @Override
         @Transactional
@@ -58,6 +61,12 @@ public class ProductService implements IProductService {
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 ProductMessageConstant.BRAND_NOT_FOUND));
 
+                SizeGroup sizeGroup = null;
+                if (request.getSizeGroupId() != null) {
+                        sizeGroup = sizeGroupRepository.findById(request.getSizeGroupId())
+                                        .orElseThrow(() -> new ResourceNotFoundException("Size group not found"));
+                }
+
                 String slug = generateSlug(request.getName());
 
                 Product product = Product.builder()
@@ -66,6 +75,7 @@ public class ProductService implements IProductService {
                                 .description(request.getDescription())
                                 .category(category)
                                 .brand(brand)
+                                .sizeGroup(sizeGroup)
                                 .gender(request.getGender())
                                 .status(request.getStatus() != null ? request.getStatus() : ProductStatus.ACTIVE)
                                 .isFeatured(request.getIsFeatured() != null ? request.getIsFeatured() : false)
@@ -94,6 +104,14 @@ public class ProductService implements IProductService {
                 if (!product.getName().equals(request.getName())) {
                         product.setName(request.getName());
                         product.setSlug(generateSlug(request.getName()));
+                }
+
+                if (request.getSizeGroupId() != null) {
+                        SizeGroup sizeGroup = sizeGroupRepository.findById(request.getSizeGroupId())
+                                        .orElseThrow(() -> new ResourceNotFoundException("Size group not found"));
+                        product.setSizeGroup(sizeGroup);
+                } else {
+                        product.setSizeGroup(null);
                 }
 
                 product.setDescription(request.getDescription());
@@ -268,6 +286,7 @@ public class ProductService implements IProductService {
                                 .isCustomizable(product.getCategory() != null && product.getCategory().isCustomizable())
                                 .averageRating(product.getAverageRating())
                                 .reviewCount(product.getReviewCount())
+                                .sizeGroupId(product.getSizeGroup() != null ? product.getSizeGroup().getId() : null)
                                 .build();
         }
 }
