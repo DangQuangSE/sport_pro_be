@@ -9,4 +9,7 @@ public interface IProfileService {
     UserProfileResponse updateProfile(Long userId, UpdateProfileRequest request);
     UserProfileResponse updateAvatar(Long userId, MultipartFile file);
     java.util.List<UserProfileResponse> getAllProfiles();
+    UserProfileResponse updateUserRole(Long userId, String role);
+    UserProfileResponse setUserActive(Long userId, boolean active);
+    void deleteUser(Long userId);
 }

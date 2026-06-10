@@ -48,5 +48,8 @@ public class User extends AbstractAuditingEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private UserTier tier = UserTier.BRONZE;
+
+    @Column(nullable = false)
+    private boolean isActive = true;
 }
 

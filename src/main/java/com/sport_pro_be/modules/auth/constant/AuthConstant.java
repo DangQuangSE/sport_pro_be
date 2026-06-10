@@ -19,6 +19,7 @@ public class AuthConstant {
     public static final String OTP_LOCKED_TOO_MANY_ATTEMPTS = "OTP has been locked due to too many incorrect attempts";
     public static final String OTP_REQUEST_TOO_FREQUENT = "You are requesting OTP too frequently. Please try again in a few seconds";
     public static final String ACCOUNT_NOT_FOUND = "Account not found";
+    public static final String ACCOUNT_DELETED = "This account has been deleted";
     public static final String ACCOUNT_ALREADY_VERIFIED = "Account is already verified";
     public static final String REFRESH_TOKEN_REQUIRED = "Refresh token is required";
     public static final String REFRESH_TOKEN_INVALID_OR_EXPIRED = "Refresh token is invalid or expired";
@@ -36,6 +37,18 @@ public class AuthConstant {
     public static final String TOKEN_REFRESHED = "Token refreshed successfully";
     public static final String USER_DETAILS_RETRIEVED = "User details retrieved successfully";
     public static final String OTP_VERIFIED_SUCCESS = "OTP verified successfully";
+
+    // Profile
+    public static final String USER_NOT_FOUND = "User not found";
+    public static final String PROFILE_RETRIEVED = "Profile retrieved successfully";
+    public static final String PROFILE_UPDATED = "Profile updated successfully";
+    public static final String AVATAR_UPDATED = "Avatar updated successfully";
+
+    // Admin User Management
+    public static final String USERS_RETRIEVED = "Users retrieved successfully";
+    public static final String USER_ROLE_UPDATED = "Role updated successfully";
+    public static final String USER_STATUS_UPDATED = "User status updated successfully";
+    public static final String USER_DELETED = "User deleted successfully";
 
     // Validation Messages
     public static final String EMAIL_REQUIRED = "Email is required";
