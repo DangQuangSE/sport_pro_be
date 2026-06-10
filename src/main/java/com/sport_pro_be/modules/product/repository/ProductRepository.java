@@ -26,4 +26,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     @Query("SELECT COUNT(p) FROM Product p WHERE p.slug = :slug OR p.slug LIKE CONCAT(:slug, '-%')")
     long countBySlugPattern(@Param("slug") String slug);
+
+    boolean existsBySizeGroupId(Long sizeGroupId);
 }

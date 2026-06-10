@@ -27,6 +27,7 @@ public class ProductDetailResponse {
     private Boolean isCustomizable;
     private Double averageRating;
     private Integer reviewCount;
+    private Long sizeGroupId;
 }
 
 
