@@ -28,6 +28,8 @@ public class ProductCreateRequest {
     private Boolean isFeatured;
 
     private ProductStatus status;
+
+    private Long sizeGroupId;
 }
 
 

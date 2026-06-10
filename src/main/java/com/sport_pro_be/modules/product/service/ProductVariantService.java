@@ -17,6 +17,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 
 @Service
 @RequiredArgsConstructor
@@ -90,6 +94,46 @@ public class ProductVariantService implements IProductVariantService {
         ProductVariant variant = productVariantRepository.findById(variantId)
                 .orElseThrow(() -> new ResourceNotFoundException(ProductMessageConstant.VARIANT_NOT_FOUND));
         productVariantRepository.delete(variant);
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = { "products", "product_details" }, allEntries = true)
+    public List<ProductVariantResponse> createVariantsBatch(Long productId, List<ProductVariantRequest> requests) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException(ProductMessageConstant.PRODUCT_NOT_FOUND));
+
+        List<ProductVariantResponse> responses = new ArrayList<>();
+        Set<String> requestSkus = new HashSet<>();
+
+        for (ProductVariantRequest request : requests) {
+            if (!requestSkus.add(request.getSku())) {
+                throw new ConflictException("Duplicate SKU in request: " + request.getSku());
+            }
+
+            if (productVariantRepository.existsBySku(request.getSku())) {
+                throw new ConflictException(ProductMessageConstant.SKU_ALREADY_EXISTS + ": " + request.getSku());
+            }
+
+            Color color = colorRepository.findById(request.getColorId())
+                    .orElseThrow(() -> new ResourceNotFoundException(ColorMessageConstant.COLOR_NOT_FOUND));
+
+            ProductVariant variant = ProductVariant.builder()
+                    .product(product)
+                    .sku(request.getSku())
+                    .size(request.getSize())
+                    .color(color)
+                    .colorOld(color.getName())
+                    .originalPrice(request.getOriginalPrice())
+                    .salePrice(request.getSalePrice())
+                    .stockQuantity(request.getStockQuantity())
+                    .status(request.getStatus())
+                    .build();
+
+            variant = productVariantRepository.save(variant);
+            responses.add(mapToResponse(variant));
+        }
+        return responses;
     }
 
     private ProductVariantResponse mapToResponse(ProductVariant v) {
