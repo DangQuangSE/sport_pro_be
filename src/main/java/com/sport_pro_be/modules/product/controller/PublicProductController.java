@@ -88,7 +88,7 @@ public class PublicProductController {
             @ParameterObject
             @org.springframework.data.web.PageableDefault(size = 12, sort = "id", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         
-        Page<ProductListResponse> products = productService.getProducts(keyword, categoryId, brandId, gender, size, color, minPrice, maxPrice, isFeatured, ProductStatus.ACTIVE, pageable);
+        Page<ProductListResponse> products = productService.getProducts(keyword, categoryId, brandId, gender, size, color, minPrice, maxPrice, isFeatured, ProductStatus.ACTIVE, false, pageable);
         return ApiResponse.of(ProductMessageConstant.SUCCESS, products);
     }
 

@@ -37,4 +37,8 @@ build/
 # Local Docs
 docs/
 
+.claude/
 
+# Local run logs
+be.log
+be-err.log
