@@ -37,4 +37,4 @@ build/
 # Local Docs
 docs/
 
-
+.claude/
