@@ -105,9 +105,15 @@ public class AdminProductController {
             )
             @RequestParam(required = false) Boolean isFeatured,
 
+            @Parameter(
+                    description = "Include soft-deleted products in results. Defaults to true for admin.",
+                    required = false
+            )
+            @RequestParam(required = false, defaultValue = "true") Boolean includeDeleted,
+
             @ParameterObject
             @org.springframework.data.web.PageableDefault(size = 20, sort = "id", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
-        Page<ProductListResponse> products = productService.getProducts(keyword, categoryId, brandId, gender, size, color, minPrice, maxPrice, isFeatured, status, pageable);
+        Page<ProductListResponse> products = productService.getProducts(keyword, categoryId, brandId, gender, size, color, minPrice, maxPrice, isFeatured, status, includeDeleted, pageable);
         return ApiResponse.of(ProductMessageConstant.SUCCESS, products);
     }
 
@@ -130,6 +136,12 @@ public class AdminProductController {
     public ApiResponse<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ApiResponse.of(ProductMessageConstant.PRODUCT_DELETED, null);
+    }
+
+    @PatchMapping("/{id}/restore")
+    public ApiResponse<Void> restoreProduct(@PathVariable Long id) {
+        productService.restoreProduct(id);
+        return ApiResponse.of(ProductMessageConstant.PRODUCT_UPDATED, null);
     }
 
     // Variants

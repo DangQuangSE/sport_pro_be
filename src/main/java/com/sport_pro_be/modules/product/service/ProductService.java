@@ -135,19 +135,33 @@ public class ProductService implements IProductService {
                 Product product = productRepository.findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 ProductMessageConstant.PRODUCT_NOT_FOUND));
-                productRepository.delete(product);
+                product.setStatus(ProductStatus.DELETED);
+                productRepository.save(product);
+        }
+
+        @Override
+        @Transactional
+        @Loggable(action = "RESTORE_PRODUCT", module = "PRODUCT")
+        @CacheEvict(value = { "products", "product_details" }, allEntries = true)
+        public void restoreProduct(Long id) {
+                Product product = productRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                ProductMessageConstant.PRODUCT_NOT_FOUND));
+                product.setStatus(ProductStatus.ACTIVE);
+                productRepository.save(product);
         }
 
         @Override
         @Transactional(readOnly = true)
-        @Cacheable(value = "products", key = "{#keyword, #categoryId, #brandId, #gender, #size, #color, #minPrice, #maxPrice, #isFeatured, #status, #pageable.pageNumber, #pageable.pageSize, #pageable.sort}")
+        @Cacheable(value = "products", key = "{#keyword, #categoryId, #brandId, #gender, #size, #color, #minPrice, #maxPrice, #isFeatured, #status, #includeDeleted, #pageable.pageNumber, #pageable.pageSize, #pageable.sort}")
         public Page<ProductListResponse> getProducts(String keyword, Long categoryId, Long brandId, Gender gender,
                         String size,
                         String color, BigDecimal minPrice, BigDecimal maxPrice, Boolean isFeatured, ProductStatus status,
+                        Boolean includeDeleted,
                         Pageable pageable) {
                 Specification<Product> spec = ProductSpecification.filterProducts(keyword, categoryId, brandId, gender,
                                 size,
-                                color, minPrice, maxPrice, isFeatured, status);
+                                color, minPrice, maxPrice, isFeatured, status, includeDeleted);
                 Page<Product> products = productRepository.findAllWithAssociations(spec, pageable);
                 return products.map(this::mapToListResponse);
         }
@@ -169,6 +183,9 @@ public class ProductService implements IProductService {
                 Product product = productRepository.findBySlugWithAssociations(slug)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 ProductMessageConstant.PRODUCT_NOT_FOUND));
+                if (product.getStatus() == ProductStatus.DELETED) {
+                        throw new ResourceNotFoundException(ProductMessageConstant.PRODUCT_NOT_FOUND);
+                }
                 return mapToDetailResponse(product, false);
         }
 
