@@ -33,72 +33,63 @@ import java.util.List;
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
-@OpenAPIDefinition(
-        info = @Info(title = "Sport Pro API", version = "v1"),
-        security = @SecurityRequirement(name = "bearerAuth")
-)
-@SecurityScheme(
-        name = "bearerAuth",
-        type = SecuritySchemeType.HTTP,
-        scheme = "bearer",
-        bearerFormat = "JWT"
-)
+@OpenAPIDefinition(info = @Info(title = "Sport Pro API", version = "v1"), security = @SecurityRequirement(name = "bearerAuth"))
+@SecurityScheme(name = "bearerAuth", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
 public class SecurityConfig {
-
-
 
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
         private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
         private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
         private static final String[] PUBLIC_URLS = {
-                "/swagger-ui/**",
-                "/v3/api-docs/**",
-                "/v3/api-docs.yaml",
-                "/api/auth/**",
-                "/api/categories/**",
-                "/api/brands/**",
-                "/api/colors/**",
-                "/api/products/**",
-                "/api/public/**"
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/v3/api-docs.yaml",
+                        "/api/auth/**",
+                        "/api/categories/**",
+                        "/api/brands/**",
+                        "/api/colors/**",
+                        "/api/products/**",
+                        "/api/public/**"
         };
 
         private static final String[] ADMIN_URLS = {
-                "/api/admin/**"
+                        "/api/admin/**"
         };
 
         @Bean
         SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
-                        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                        .csrf(AbstractHttpConfigurer::disable)
-                        .sessionManagement(session -> session
-                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                        .exceptionHandling(ex -> ex
-                                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                                .accessDeniedHandler(customAccessDeniedHandler))
-                        .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers(PUBLIC_URLS).permitAll()
-                                .requestMatchers(ADMIN_URLS).hasRole("ADMIN")
-                                .anyRequest().authenticated())
-                        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .exceptionHandling(ex -> ex
+                                                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                                                .accessDeniedHandler(customAccessDeniedHandler))
+                                .authorizeHttpRequests(authorize -> authorize
+                                                .requestMatchers(PUBLIC_URLS).permitAll()
+                                                .requestMatchers(ADMIN_URLS).hasRole("ADMIN")
+                                                .anyRequest().authenticated())
+                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
                 return http.build();
         }
 
-        @Value("${FRONTEND_URL:http://localhost:3000}")
+        @Value("${FRONTEND_URL}")
         private String frontendUrl;
 
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
                 List<String> origins = Arrays.stream(frontendUrl.split(","))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .toList();
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .toList();
                 configuration.setAllowedOrigins(origins);
                 configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-                configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control", "Accept-Language"));
+                configuration.setAllowedHeaders(
+                                List.of("Authorization", "Content-Type", "Cache-Control", "Accept-Language"));
                 configuration.setAllowCredentials(true);
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/**", configuration);
