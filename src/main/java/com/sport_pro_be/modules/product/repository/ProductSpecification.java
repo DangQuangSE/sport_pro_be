@@ -18,7 +18,7 @@ public class ProductSpecification {
 
     public static Specification<Product> filterProducts(
             String keyword, Long categoryId, Long brandId, Gender gender, String size, String color,
-            BigDecimal minPrice, BigDecimal maxPrice, Boolean isFeatured, ProductStatus status) {
+            BigDecimal minPrice, BigDecimal maxPrice, Boolean isFeatured, ProductStatus status, Boolean includeDeleted) {
 
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -32,7 +32,7 @@ public class ProductSpecification {
 
             if (status != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), status));
-            } else {
+            } else if (!Boolean.TRUE.equals(includeDeleted)) {
                 predicates.add(criteriaBuilder.notEqual(root.get("status"), ProductStatus.DELETED));
             }
 
