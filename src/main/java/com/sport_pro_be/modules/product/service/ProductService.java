@@ -169,7 +169,7 @@ public class ProductService implements IProductService {
                 Product product = productRepository.findBySlugWithAssociations(slug)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 ProductMessageConstant.PRODUCT_NOT_FOUND));
-                return mapToDetailResponse(product);
+                return mapToDetailResponse(product, false);
         }
 
         private String generateSlug(String name) {
@@ -190,7 +190,8 @@ public class ProductService implements IProductService {
                 int totalStock = 0;
                 String firstSku = null;
 
-                for (ProductVariant v : product.getVariants()) {
+                for (ProductVariant v : product.getVariants().stream()
+                                .filter(v2 -> v2.getStatus() != ProductStatus.DELETED).toList()) {
                         BigDecimal price = v.getSalePrice() != null ? v.getSalePrice() : v.getOriginalPrice();
                         if (minPrice == null || price.compareTo(minPrice) < 0) {
                                 minPrice = price;
@@ -245,6 +246,10 @@ public class ProductService implements IProductService {
         }
 
         private ProductDetailResponse mapToDetailResponse(Product product) {
+                return mapToDetailResponse(product, true);
+        }
+
+        private ProductDetailResponse mapToDetailResponse(Product product, boolean includeDeleted) {
                 List<ProductImageResponse> images = product.getImages().stream()
                                 .map(img -> ProductImageResponse.builder()
                                                 .id(img.getId())
@@ -255,6 +260,7 @@ public class ProductService implements IProductService {
                                 .collect(Collectors.toList());
 
                 List<ProductVariantResponse> variants = product.getVariants().stream()
+                                .filter(v -> includeDeleted || v.getStatus() != ProductStatus.DELETED)
                                 .map(v -> ProductVariantResponse.builder()
                                                 .id(v.getId())
                                                 .sku(v.getSku())

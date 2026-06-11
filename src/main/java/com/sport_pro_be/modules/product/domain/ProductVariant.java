@@ -5,16 +5,15 @@ import com.sport_pro_be.modules.product.enums.ProductStatus;
 import com.sport_pro_be.modules.color.domain.Color;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
 
 import java.math.BigDecimal;
 
 @Entity
+@SQLDelete(sql = "UPDATE product_variants SET status = 'DELETED' WHERE id = ?")
 @Table(name = "product_variants", indexes = {
-        @Index(name = "idx_variant_product_id", columnList = "product_id"),
         @Index(name = "idx_variant_size", columnList = "size"),
         @Index(name = "idx_variant_color", columnList = "color"),
-        @Index(name = "idx_variant_price", columnList = "sale_price"),
-        @Index(name = "idx_variant_stock", columnList = "stock_quantity"),
         @Index(name = "idx_variant_filter", columnList = "size, color, sale_price")
 })
 @Getter
@@ -60,5 +59,3 @@ public class ProductVariant extends AbstractAuditingEntity {
     @Builder.Default
     private ProductStatus status = ProductStatus.ACTIVE;
 }
-
-
