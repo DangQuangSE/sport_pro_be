@@ -145,6 +145,14 @@ public class CartService implements ICartService {
             totalAmount = totalAmount.add(itemTotal);
             totalItems += item.getQuantity();
 
+            boolean isProdDeleted = variant.getProduct().getStatus() == ProductStatus.DELETED;
+            boolean isVarDeleted = variant.getStatus() == ProductStatus.DELETED;
+            boolean isDeleted = isProdDeleted || isVarDeleted;
+
+            boolean isProdActive = variant.getProduct().getStatus() == ProductStatus.ACTIVE;
+            boolean isVarActive = variant.getStatus() == ProductStatus.ACTIVE;
+            boolean isActive = isProdActive && isVarActive;
+
             CartItemResponse.CartItemResponseBuilder responseBuilder = CartItemResponse.builder()
                     .id(item.getId())
                     .variantId(variant.getId())
@@ -156,6 +164,9 @@ public class CartService implements ICartService {
                     .salePrice(variant.getSalePrice())
                     .quantity(item.getQuantity())
                     .itemTotal(itemTotal)
+                    .isDeleted(isDeleted)
+                    .isActive(isActive)
+                    .stockQuantity(variant.getStockQuantity())
                     .isCustomizable(variant.getProduct().getCategory() != null && variant.getProduct().getCategory().isCustomizable());
 
             String defaultImageUrl = variant.getProduct().getImages().stream()

@@ -28,4 +28,7 @@ public class CartItemResponse {
     private BigDecimal printingPrice;
     private Boolean isCustomizable;
     private String productImageUrl;
+    private Boolean isDeleted;
+    private Boolean isActive;
+    private Integer stockQuantity;
 }
