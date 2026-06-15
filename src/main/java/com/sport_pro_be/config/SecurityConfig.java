@@ -50,6 +50,7 @@ public class SecurityConfig {
                         "/api/brands/**",
                         "/api/colors/**",
                         "/api/products/**",
+                        "/api/public-configs/**",
                         "/api/public/**"
         };
 
