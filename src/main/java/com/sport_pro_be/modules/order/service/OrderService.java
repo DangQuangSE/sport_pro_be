@@ -1,6 +1,7 @@
 package com.sport_pro_be.modules.order.service;
 
 import com.sport_pro_be.modules.order.constant.OrderMessageConstant;
+import com.sport_pro_be.modules.notification.service.NotificationOutboxService;
 import com.sport_pro_be.exception.BadRequestException;
 import com.sport_pro_be.exception.ResourceNotFoundException;
 import com.sport_pro_be.modules.audit.annotation.Loggable;
@@ -45,6 +46,7 @@ public class OrderService implements IOrderService {
     private final ProductVariantRepository productVariantRepository;
     private final com.sport_pro_be.modules.coupon.interfaces.ICouponService couponService;
     private final com.sport_pro_be.modules.membership.interfaces.ITierService tierService;
+    private final NotificationOutboxService notificationOutboxService;
 
     @Override
     @Transactional
@@ -144,6 +146,8 @@ public class OrderService implements IOrderService {
         // Clear only ordered items from cart
         cart.getItems().removeAll(itemsToOrder);
         cartRepository.save(cart);
+
+        notificationOutboxService.enqueueNewOrder(order);
 
         return mapToOrderResponse(order);
     }

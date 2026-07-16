@@ -26,4 +26,13 @@ public final class NotificationMessageConstant {
     public static final String TOTAL_AMOUNT_MIN = "Total amount must be positive or zero";
     public static final String CURRENCY_REQUIRED = "Currency is required";
     public static final String ORDER_LINES_REQUIRED = "Order lines are required";
+    public static final String DISCORD_RATE_LIMITED = "Discord rate limit response";
+    public static final String DISCORD_UNAUTHORIZED = "Discord authentication failed";
+    public static final String DISCORD_FORBIDDEN = "Discord channel permission denied";
+    public static final String DISCORD_CHANNEL_NOT_FOUND = "Discord channel not found";
+    public static final String DISCORD_CLIENT_ERROR = "Discord rejected the request";
+    public static final String DISCORD_SERVER_ERROR = "Discord server error";
+    public static final String DISCORD_NETWORK_ERROR = "Discord network error";
+    public static final String DISCORD_INVALID_RESPONSE = "Discord returned an invalid response";
+    public static final String DISCORD_MESSAGE_TOO_LONG = "A Discord message chunk exceeds 2000 characters";
 }

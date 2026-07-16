@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
+import java.time.ZoneId;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static com.sport_pro_be.modules.notification.constant.NotificationMessageConstant.*;
 
@@ -39,6 +42,9 @@ public class DiscordNotificationProperties {
     @NotNull
     private Duration leaseDuration = Duration.ofMinutes(2);
 
+    @NotNull
+    private ZoneId timeZone = ZoneId.of("Asia/Bangkok");
+
     @Min(1)
     @Max(100)
     private int maxJobsPerTick = 10;
@@ -60,7 +66,7 @@ public class DiscordNotificationProperties {
 
     @AssertTrue(message = ADMIN_ORDER_URL_TEMPLATE_REQUIRED)
     public boolean isAdminOrderUrlTemplateConfigured() {
-        return !enabled || (hasText(adminOrderUrlTemplate) && adminOrderUrlTemplate.contains("{orderId}"));
+        return !enabled || isValidAdminOrderUrlTemplate();
     }
 
     @AssertTrue(message = HTTP_TIMEOUTS_INVALID)
@@ -74,5 +80,21 @@ public class DiscordNotificationProperties {
 
     private static boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    private boolean isValidAdminOrderUrlTemplate() {
+        if (!hasText(adminOrderUrlTemplate)
+                || !adminOrderUrlTemplate.contains("{orderId}")
+                || adminOrderUrlTemplate.length() > 1000) {
+            return false;
+        }
+        try {
+            URI uri = new URI(adminOrderUrlTemplate.replace("{orderId}", "1"));
+            return uri.isAbsolute()
+                    && uri.getHost() != null
+                    && ("https".equalsIgnoreCase(uri.getScheme()) || "http".equalsIgnoreCase(uri.getScheme()));
+        } catch (URISyntaxException exception) {
+            return false;
+        }
     }
 }
