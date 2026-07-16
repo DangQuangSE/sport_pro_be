@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
@@ -22,13 +23,21 @@ import static com.sport_pro_be.modules.notification.constant.NotificationMessage
 @Setter
 @Validated
 @Component
+@Lazy(false)
 @ConfigurationProperties(prefix = "app.notifications.discord")
 public class DiscordNotificationProperties {
 
     private boolean enabled;
+    @NotBlank(message = BOT_TOKEN_REQUIRED)
     private String botToken;
+
+    @NotBlank(message = ORDER_CHANNEL_REQUIRED)
     private String orderChannelId;
+
+    @NotBlank(message = ALERT_CHANNEL_REQUIRED)
     private String alertChannelId;
+
+    @NotBlank(message = ADMIN_ORDER_URL_TEMPLATE_REQUIRED)
     private String adminOrderUrlTemplate;
     @NotBlank(message = CURRENCY_REQUIRED)
     private String currency = "VND";
@@ -43,6 +52,9 @@ public class DiscordNotificationProperties {
     private Duration leaseDuration = Duration.ofMinutes(2);
 
     @NotNull
+    private Duration workerDelay = Duration.ofSeconds(10);
+
+    @NotNull
     private ZoneId timeZone = ZoneId.of("Asia/Bangkok");
 
     @Min(1)
@@ -51,22 +63,22 @@ public class DiscordNotificationProperties {
 
     @AssertTrue(message = BOT_TOKEN_REQUIRED)
     public boolean isBotTokenConfigured() {
-        return !enabled || hasText(botToken);
+        return hasText(botToken);
     }
 
     @AssertTrue(message = ORDER_CHANNEL_REQUIRED)
     public boolean isOrderChannelConfigured() {
-        return !enabled || hasText(orderChannelId);
+        return hasText(orderChannelId) && orderChannelId.chars().allMatch(Character::isDigit);
     }
 
     @AssertTrue(message = ALERT_CHANNEL_REQUIRED)
     public boolean isAlertChannelConfigured() {
-        return !enabled || hasText(alertChannelId);
+        return hasText(alertChannelId) && alertChannelId.chars().allMatch(Character::isDigit);
     }
 
     @AssertTrue(message = ADMIN_ORDER_URL_TEMPLATE_REQUIRED)
     public boolean isAdminOrderUrlTemplateConfigured() {
-        return !enabled || isValidAdminOrderUrlTemplate();
+        return isValidAdminOrderUrlTemplate();
     }
 
     @AssertTrue(message = HTTP_TIMEOUTS_INVALID)
@@ -75,6 +87,7 @@ public class DiscordNotificationProperties {
                 && !leaseDuration.isNegative() && !leaseDuration.isZero()
                 && !connectTimeout.isNegative() && !connectTimeout.isZero()
                 && !readTimeout.isNegative() && !readTimeout.isZero()
+                && workerDelay != null && !workerDelay.isNegative() && !workerDelay.isZero()
                 && leaseDuration.compareTo(connectTimeout.plus(readTimeout)) > 0;
     }
 

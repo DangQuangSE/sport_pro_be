@@ -44,6 +44,9 @@ public class NotificationOutbox {
     @JoinColumn(name = "source_outbox_id")
     private NotificationOutbox sourceOutbox;
 
+    @Column(name = "source_outbox_id", insertable = false, updatable = false)
+    private Long sourceOutboxId;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "payload_snapshot", nullable = false, columnDefinition = "jsonb")
     @Valid

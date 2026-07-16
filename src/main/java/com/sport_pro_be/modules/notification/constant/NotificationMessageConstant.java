@@ -7,13 +7,13 @@ public final class NotificationMessageConstant {
 
     // Validation Messages
     public static final String BOT_TOKEN_REQUIRED =
-            "Bot token is required when Discord notifications are enabled";
+            "Bot token is required";
     public static final String ORDER_CHANNEL_REQUIRED =
-            "Order channel ID is required when Discord notifications are enabled";
+            "A numeric order channel ID is required";
     public static final String ALERT_CHANNEL_REQUIRED =
-            "Alert channel ID is required when Discord notifications are enabled";
+            "A numeric alert channel ID is required";
     public static final String ADMIN_ORDER_URL_TEMPLATE_REQUIRED =
-            "Admin order URL template containing {orderId} is required when Discord notifications are enabled";
+            "An absolute HTTP(S) admin order URL template containing {orderId} is required";
     public static final String HTTP_TIMEOUTS_INVALID =
             "HTTP timeouts must be positive and shorter than the processing lease";
     public static final String PRODUCT_NAME_REQUIRED = "Product name is required";
@@ -35,4 +35,17 @@ public final class NotificationMessageConstant {
     public static final String DISCORD_NETWORK_ERROR = "Discord network error";
     public static final String DISCORD_INVALID_RESPONSE = "Discord returned an invalid response";
     public static final String DISCORD_MESSAGE_TOO_LONG = "A Discord message chunk exceeds 2000 characters";
+    public static final String DELIVERY_FAILED = "Discord delivery failed";
+    public static final String FINAL_LEASE_EXPIRED = "Processing lease expired after final delivery cycle";
+    public static final String FAILURE_ALERT_TITLE = "Discord order notification failed";
+
+    // Structured Log Events
+    public static final String LOG_DISPATCH_ERROR =
+            "notification_dispatch_error outboxId={} errorType={}";
+    public static final String LOG_OWNERSHIP_LOST =
+            "notification_ownership_lost outboxId={} transition={}";
+    public static final String LOG_ALERT_TERMINAL =
+            "notification_alert_terminal outboxId={} category={}";
+    public static final String LOG_ORDER_TERMINAL =
+            "notification_order_terminal outboxId={} category={}";
 }
