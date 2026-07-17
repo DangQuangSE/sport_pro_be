@@ -1,0 +1,98 @@
+name: sport-pro
+
+services:
+  db:
+    container_name: sport_pro_be_db
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${LOCAL_DB_NAME:-sport_pro}
+      POSTGRES_USER: ${LOCAL_DB_USERNAME:-sport_pro}
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:-sport_pro_local}
+    ports:
+      - "${LOCAL_DB_PORT:-5434}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  api:
+    container_name: sport_pro_be_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${LOCAL_DB_NAME:-sport_pro}
+      DB_USERNAME: ${LOCAL_DB_USERNAME:-sport_pro}
+      DB_PASSWORD: ${LOCAL_DB_PASSWORD:-sport_pro_local}
+      # The repository currently starts at Flyway V2, so a blank local DB
+      # must be bootstrapped from the current JPA entities.
+      SPRING_JPA_DDL_AUTO: ${LOCAL_SPRING_JPA_DDL_AUTO:-update}
+      SPRING_FLYWAY_ENABLED: ${LOCAL_SPRING_FLYWAY_ENABLED:-false}
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:-true}
+      SPRING_FLYWAY_BASELINE_VERSION: ${SPRING_FLYWAY_BASELINE_VERSION:-1}
+      SPRING_FLYWAY_VALIDATE_ON_MIGRATE: ${SPRING_FLYWAY_VALIDATE_ON_MIGRATE:-false}
+      DB_POOL_MAX_SIZE: ${DB_POOL_MAX_SIZE:-5}
+      DB_POOL_MIN_IDLE: ${DB_POOL_MIN_IDLE:-2}
+      DB_POOL_IDLE_TIMEOUT: ${DB_POOL_IDLE_TIMEOUT:-300000}
+      DB_POOL_MAX_LIFETIME: ${DB_POOL_MAX_LIFETIME:-600000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000,http://localhost:3001}
+      DISCORD_NOTIFICATIONS_ENABLED: ${DISCORD_NOTIFICATIONS_ENABLED}
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
+      DISCORD_ORDER_CHANNEL_ID: ${DISCORD_ORDER_CHANNEL_ID}
+      DISCORD_ALERT_CHANNEL_ID: ${DISCORD_ALERT_CHANNEL_ID}
+      DISCORD_ADMIN_ORDER_URL_TEMPLATE: ${DISCORD_ADMIN_ORDER_URL_TEMPLATE}
+      DISCORD_ORDER_CURRENCY: ${DISCORD_ORDER_CURRENCY}
+      DISCORD_CONNECT_TIMEOUT: ${DISCORD_CONNECT_TIMEOUT}
+      DISCORD_READ_TIMEOUT: ${DISCORD_READ_TIMEOUT}
+      DISCORD_LEASE_DURATION: ${DISCORD_LEASE_DURATION}
+      DISCORD_MAX_JOBS_PER_TICK: ${DISCORD_MAX_JOBS_PER_TICK}
+      DISCORD_TIME_ZONE: ${DISCORD_TIME_ZONE}
+      DISCORD_WORKER_DELAY: ${DISCORD_WORKER_DELAY}
+      DISCORD_SENT_RETENTION: ${DISCORD_SENT_RETENTION}
+      DISCORD_FAILED_RETENTION: ${DISCORD_FAILED_RETENTION}
+      DISCORD_CLEANUP_BATCH_SIZE: ${DISCORD_CLEANUP_BATCH_SIZE}
+      DISCORD_CLEANUP_DELAY: ${DISCORD_CLEANUP_DELAY}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  import-neon:
+    container_name: sport_pro_be_import_neon
+    image: postgres:17-alpine
+    profiles: ["tools"]
+    environment:
+      NEON_DATABASE_URL: ${NEON_DATABASE_URL:-}
+      PGDATABASE: ${LOCAL_DB_NAME:-sport_pro}
+      PGUSER: ${LOCAL_DB_USERNAME:-sport_pro}
+      PGPASSWORD: ${LOCAL_DB_PASSWORD:-sport_pro_local}
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        test -n "$${NEON_DATABASE_URL}" || { echo "NEON_DATABASE_URL is required" >&2; exit 1; }
+        echo "Exporting Neon database..."
+        pg_dump "$${NEON_DATABASE_URL}" --format=custom --no-owner --no-acl --file=/tmp/neon.dump
+        echo "Recreating the local database..."
+        dropdb --host=db --if-exists --force "$${PGDATABASE}"
+        createdb --host=db --owner="$${PGUSER}" "$${PGDATABASE}"
+        echo "Restoring the Neon snapshot..."
+        pg_restore --host=db --no-owner --no-acl --exit-on-error --dbname="$${PGDATABASE}" /tmp/neon.dump
+        echo "Neon data imported successfully."
+
+volumes:
+  postgres_data:
