@@ -16,6 +16,9 @@ public final class NotificationMessageConstant {
             "An absolute HTTP(S) admin order URL template containing {orderId} is required";
     public static final String HTTP_TIMEOUTS_INVALID =
             "HTTP timeouts must be positive and shorter than the processing lease";
+    public static final String RETENTION_INVALID =
+            "Sent retention must be at least 7 days and failed retention at least 30 days";
+    public static final String CLEANUP_DELAY_INVALID = "Cleanup delay must be positive";
     public static final String PRODUCT_NAME_REQUIRED = "Product name is required";
     public static final String QUANTITY_MIN = "Quantity must be at least 1";
     public static final String SNAPSHOT_SCHEMA_VERSION_MIN = "Snapshot schema version must be at least 1";
@@ -48,4 +51,15 @@ public final class NotificationMessageConstant {
             "notification_alert_terminal outboxId={} category={}";
     public static final String LOG_ORDER_TERMINAL =
             "notification_order_terminal outboxId={} category={}";
+    public static final String LOG_ENQUEUED = "notification_enqueued outboxId={} orderId={}";
+    public static final String LOG_CLAIMED = "notification_claimed outboxId={} cycle={}";
+    public static final String LOG_SENT = "notification_sent outboxId={} chunks={}";
+    public static final String LOG_RETRY_SCHEDULED =
+            "notification_retry_scheduled outboxId={} notificationType={} cycle={} nextAttemptAt={} category={}";
+    public static final String LOG_FAILED = "notification_failed outboxId={} category={}";
+    public static final String LOG_CLEANED = "notification_cleaned sent={} failed={}";
+    public static final String LOG_CLEANUP_ERROR =
+            "notification_cleanup_error category={} errorType={}";
+    public static final String LOG_QUEUE_STATE =
+            "notification_queue_state pendingCount={} oldestActiveAgeSeconds={}";
 }

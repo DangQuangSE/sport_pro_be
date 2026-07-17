@@ -55,6 +55,19 @@ public class DiscordNotificationProperties {
     private Duration workerDelay = Duration.ofSeconds(10);
 
     @NotNull
+    private Duration sentRetention = Duration.ofDays(7);
+
+    @NotNull
+    private Duration failedRetention = Duration.ofDays(30);
+
+    @NotNull
+    private Duration cleanupDelay = Duration.ofHours(1);
+
+    @Min(1)
+    @Max(10000)
+    private int cleanupBatchSize = 500;
+
+    @NotNull
     private ZoneId timeZone = ZoneId.of("Asia/Bangkok");
 
     @Min(1)
@@ -89,6 +102,18 @@ public class DiscordNotificationProperties {
                 && !readTimeout.isNegative() && !readTimeout.isZero()
                 && workerDelay != null && !workerDelay.isNegative() && !workerDelay.isZero()
                 && leaseDuration.compareTo(connectTimeout.plus(readTimeout)) > 0;
+    }
+
+    @AssertTrue(message = RETENTION_INVALID)
+    public boolean isRetentionValid() {
+        return sentRetention != null && failedRetention != null
+                && sentRetention.compareTo(Duration.ofDays(7)) >= 0
+                && failedRetention.compareTo(Duration.ofDays(30)) >= 0;
+    }
+
+    @AssertTrue(message = CLEANUP_DELAY_INVALID)
+    public boolean isCleanupDelayValid() {
+        return cleanupDelay != null && !cleanupDelay.isNegative() && !cleanupDelay.isZero();
     }
 
     private static boolean hasText(String value) {

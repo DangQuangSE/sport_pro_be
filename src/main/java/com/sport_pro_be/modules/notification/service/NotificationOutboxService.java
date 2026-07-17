@@ -11,6 +11,7 @@ import com.sport_pro_be.modules.order.domain.Order;
 import com.sport_pro_be.modules.order.domain.OrderItem;
 import com.sport_pro_be.modules.product.domain.ProductVariant;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +21,11 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Comparator;
 
+import static com.sport_pro_be.modules.notification.constant.NotificationMessageConstant.LOG_ENQUEUED;
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationOutboxService {
 
     private static final int SNAPSHOT_SCHEMA_VERSION = 1;
@@ -50,6 +54,7 @@ public class NotificationOutboxService {
         outbox.setFormatVersion(SNAPSHOT_SCHEMA_VERSION);
         outbox.setNextAttemptAt(Instant.now());
         repository.save(outbox);
+        log.info(LOG_ENQUEUED, outbox.getId(), order.getId());
     }
 
     private OrderNotificationSnapshot createSnapshot(Order order) {

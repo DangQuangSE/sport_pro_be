@@ -18,6 +18,7 @@ import java.util.Optional;
 import static com.sport_pro_be.modules.notification.constant.NotificationMessageConstant.FINAL_LEASE_EXPIRED;
 import static com.sport_pro_be.modules.notification.constant.NotificationMessageConstant.LOG_ALERT_TERMINAL;
 import static com.sport_pro_be.modules.notification.constant.NotificationMessageConstant.LOG_ORDER_TERMINAL;
+import static com.sport_pro_be.modules.notification.constant.NotificationMessageConstant.LOG_CLAIMED;
 
 @Repository
 @RequiredArgsConstructor
@@ -63,7 +64,12 @@ public class NotificationOutboxStateStore {
                 leaseOwner,
                 Timestamp.from(now.plus(leaseDuration)),
                 timestamp);
-        return claimedIds.isEmpty() ? Optional.empty() : repository.findById(claimedIds.getFirst());
+        if (claimedIds.isEmpty()) {
+            return Optional.empty();
+        }
+        Optional<NotificationOutbox> claimed = repository.findById(claimedIds.getFirst());
+        claimed.ifPresent(outbox -> log.info(LOG_CLAIMED, outbox.getId(), outbox.getAttemptCount()));
+        return claimed;
     }
 
     public boolean renewLease(Long id, String leaseOwner, Instant now, Duration leaseDuration) {
@@ -193,5 +199,71 @@ public class NotificationOutboxStateStore {
             return null;
         }
         return error.substring(0, Math.min(error.length(), 500));
+    }
+
+    public int deleteSentBefore(Instant cutoff, int batchLimit) {
+        return jdbcTemplate.update("""
+                WITH doomed AS (
+                    SELECT id FROM notification_outbox
+                    WHERE status = 'SENT' AND sent_at < ?
+                    -- SENT retention policy is at least 7 days
+                      AND NOT EXISTS (
+                          SELECT 1 FROM notification_outbox child
+                          WHERE child.source_outbox_id = notification_outbox.id
+                      )
+                    ORDER BY sent_at, id
+                    FOR UPDATE SKIP LOCKED
+                    LIMIT ?
+                )
+                DELETE FROM notification_outbox outbox
+                USING doomed
+                WHERE outbox.id = doomed.id
+                """, Timestamp.from(cutoff), batchLimit);
+    }
+
+    public int deleteFailedBefore(Instant cutoff, int batchLimit) {
+        return jdbcTemplate.update("""
+                WITH doomed AS (
+                    SELECT id FROM notification_outbox
+                    WHERE status = 'FAILED' AND failed_at < ?
+                    -- FAILED retention policy is at least 30 days
+                      AND NOT EXISTS (
+                          SELECT 1 FROM notification_outbox child
+                          WHERE child.source_outbox_id = notification_outbox.id
+                      )
+                    ORDER BY failed_at, id
+                    FOR UPDATE SKIP LOCKED
+                    LIMIT ?
+                )
+                DELETE FROM notification_outbox outbox
+                USING doomed
+                WHERE outbox.id = doomed.id
+                """, Timestamp.from(cutoff), batchLimit);
+    }
+
+    public Optional<Instant> findOldestActiveCreatedAt() {
+        Timestamp oldest = jdbcTemplate.queryForObject("""
+                SELECT MIN(created_at)
+                FROM notification_outbox
+                WHERE status IN ('PENDING', 'PROCESSING')
+                """, Timestamp.class);
+        return Optional.ofNullable(oldest).map(Timestamp::toInstant);
+    }
+
+    public long countPending() {
+        Long count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM notification_outbox WHERE status = 'PENDING'", Long.class);
+        return count == null ? 0 : count;
+    }
+
+    public Optional<NotificationFailureCategory> findSourceFailureCategory(Long sourceOutboxId) {
+        List<String> categories = jdbcTemplate.query(
+                "SELECT last_error_category FROM notification_outbox WHERE id = ?",
+                (resultSet, rowNumber) -> resultSet.getString("last_error_category"),
+                sourceOutboxId);
+        return categories.stream()
+                .filter(category -> category != null && !category.isBlank())
+                .findFirst()
+                .map(NotificationFailureCategory::valueOf);
     }
 }

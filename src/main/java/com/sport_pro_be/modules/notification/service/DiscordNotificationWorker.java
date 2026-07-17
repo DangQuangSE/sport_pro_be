@@ -96,6 +96,8 @@ public class DiscordNotificationWorker {
 
         if (!stateStore.markSent(outbox.getId(), claimOwner, chunks.size(), clock.instant())) {
             log.warn(LOG_OWNERSHIP_LOST, outbox.getId(), "mark_sent");
+        } else {
+            log.info(LOG_SENT, outbox.getId(), chunks.size());
         }
     }
 
@@ -111,23 +113,30 @@ public class DiscordNotificationWorker {
             } else if (outbox.getNotificationType() == NotificationType.DELIVERY_FAILURE_ALERT) {
                 log.error(LOG_ALERT_TERMINAL, outbox.getId(), category);
             } else {
-                log.error(LOG_ORDER_TERMINAL, outbox.getId(), category);
+                log.error(LOG_FAILED, outbox.getId(), category);
             }
             return;
         }
 
         Duration delay = retryPolicy.nextDelay(outbox.getAttemptCount(), result.retryAfter());
+        Instant nextAttemptAt = now.plus(delay);
         if (!stateStore.scheduleRetry(
-                outbox.getId(), claimOwner, now.plus(delay), category, error, now)) {
+                outbox.getId(), claimOwner, nextAttemptAt, category, error, now)) {
             log.warn(LOG_OWNERSHIP_LOST, outbox.getId(), "schedule_retry");
+        } else {
+            log.info(LOG_RETRY_SCHEDULED, outbox.getId(), outbox.getNotificationType(),
+                    outbox.getAttemptCount(), nextAttemptAt, category);
         }
     }
 
     private DiscordMessageRequest formatFailureAlert(NotificationOutbox outbox) {
+        NotificationFailureCategory sourceCategory = stateStore
+                .findSourceFailureCategory(outbox.getSourceOutboxId())
+                .orElse(NotificationFailureCategory.UNKNOWN);
         String content = "**" + FAILURE_ALERT_TITLE + "**\n"
                 + "Order: #" + outbox.getPayloadSnapshot().getOrderCode() + "\n"
                 + "Source outbox: " + outbox.getSourceOutboxId() + "\n"
-                + "Category: " + outbox.getLastErrorCategory();
+                + "Category: " + sourceCategory;
         return new DiscordMessageRequest(content, AllowedMentions.none());
     }
 
