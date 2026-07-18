@@ -9,6 +9,7 @@ import com.sport_pro_be.modules.user_address.constant.AddressMessageConstant;
 import com.sport_pro_be.modules.user_address.domain.UserAddress;
 import com.sport_pro_be.modules.user_address.dto.request.AddressRequest;
 import com.sport_pro_be.modules.user_address.dto.response.AddressResponse;
+import com.sport_pro_be.modules.user_address.enums.AddressType;
 import com.sport_pro_be.modules.user_address.interfaces.IAddressService;
 import com.sport_pro_be.modules.user_address.repository.AddressRepository;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +53,7 @@ public class AddressService implements IAddressService {
                 .ward(request.getWard())
                 .detailAddress(request.getDetailAddress())
                 .isDefault(request.getIsDefault())
-                .type(request.getType())
+                .type(resolveType(request.getType(), null))
                 .build();
 
         address = addressRepository.save(address);
@@ -78,7 +79,7 @@ public class AddressService implements IAddressService {
         address.setWard(request.getWard());
         address.setDetailAddress(request.getDetailAddress());
         address.setIsDefault(request.getIsDefault());
-        address.setType(request.getType());
+        address.setType(resolveType(request.getType(), address.getType()));
 
         address = addressRepository.save(address);
         return mapToResponse(address);
@@ -130,6 +131,11 @@ public class AddressService implements IAddressService {
         }
 
         return mapToResponse(address);
+    }
+
+    private AddressType resolveType(AddressType requestedType, AddressType existingType) {
+        if (requestedType != null) return requestedType;
+        return existingType != null ? existingType : AddressType.HOME;
     }
 
     private AddressResponse mapToResponse(UserAddress address) {
