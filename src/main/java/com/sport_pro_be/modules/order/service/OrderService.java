@@ -134,8 +134,10 @@ public class OrderService implements IOrderService {
             com.sport_pro_be.modules.coupon.domain.Coupon coupon = couponService
                     .validateAndGetCoupon(request.getCouponCode(), user, totalAmount);
             discountAmount = couponService.calculateDiscount(coupon, totalAmount);
+            if (!couponService.incrementUsage(coupon.getId())) {
+                throw new BadRequestException(com.sport_pro_be.modules.coupon.constant.CouponMessageConstant.USAGE_LIMIT_REACHED);
+            }
             order.setCoupon(coupon);
-            coupon.setUsedCount(coupon.getUsedCount() + 1);
         }
 
         order.setDiscountAmount(discountAmount);

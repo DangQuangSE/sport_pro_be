@@ -6,6 +6,8 @@ import com.sport_pro_be.modules.coupon.dto.CouponRequest;
 import com.sport_pro_be.modules.coupon.dto.CouponResponse;
 import com.sport_pro_be.modules.coupon.interfaces.IAdminCouponService;
 import com.sport_pro_be.modules.coupon.repository.CouponRepository;
+import com.sport_pro_be.modules.order.enums.OrderStatus;
+import com.sport_pro_be.modules.order.repository.OrderRepository;
 import com.sport_pro_be.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,11 +15,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AdminCouponService implements IAdminCouponService {
 
+    private static final List<OrderStatus> DISCOUNT_EXCLUDED_STATUSES =
+            List.of(OrderStatus.CANCELLED, OrderStatus.RETURNED, OrderStatus.REFUNDED);
+
     private final CouponRepository couponRepository;
+    private final OrderRepository orderRepository;
 
     @Override
     @Transactional
@@ -32,6 +41,7 @@ public class AdminCouponService implements IAdminCouponService {
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .usageLimit(request.getUsageLimit())
+                .maxUsagePerUser(request.getMaxUsagePerUser())
                 .isActive(request.isActive())
                 .build();
         
@@ -60,6 +70,7 @@ public class AdminCouponService implements IAdminCouponService {
         coupon.setStartDate(request.getStartDate());
         coupon.setEndDate(request.getEndDate());
         coupon.setUsageLimit(request.getUsageLimit());
+        coupon.setMaxUsagePerUser(request.getMaxUsagePerUser());
         coupon.setActive(request.isActive());
         
         coupon = couponRepository.save(coupon);
@@ -89,6 +100,9 @@ public class AdminCouponService implements IAdminCouponService {
                 .endDate(coupon.getEndDate())
                 .usageLimit(coupon.getUsageLimit())
                 .usedCount(coupon.getUsedCount())
+                .maxUsagePerUser(coupon.getMaxUsagePerUser())
+                .totalDiscountGiven(orderRepository
+                        .sumDiscountAmountByCouponIdAndStatusNotIn(coupon.getId(), DISCOUNT_EXCLUDED_STATUSES))
                 .isActive(coupon.isActive())
                 .build();
     }

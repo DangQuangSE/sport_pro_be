@@ -22,5 +22,7 @@ public class CouponResponse {
     private LocalDateTime endDate;
     private Integer usageLimit;
     private Integer usedCount;
+    private Integer maxUsagePerUser;
+    private BigDecimal totalDiscountGiven;
     private boolean isActive;
 }

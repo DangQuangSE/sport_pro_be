@@ -9,6 +9,7 @@ public class CouponMessageConstant {
     public static final String USAGE_LIMIT_REACHED = "Coupon usage limit reached";
     public static final String MIN_AMOUNT_NOT_REACHED = "Minimum order amount not reached for this coupon";
     public static final String TIER_NOT_REACHED = "Your membership tier is not high enough to use this coupon. Required: %s";
+    public static final String USER_USAGE_LIMIT_REACHED = "Bạn đã sử dụng mã này tối đa. Vui lòng chọn mã khác.";
 
     // Success Messages
     public static final String COUPON_CREATED = "Coupon created successfully";

@@ -47,6 +47,8 @@ public class Coupon extends AbstractAuditingEntity {
 
     private Integer usageLimit;
 
+    private Integer maxUsagePerUser;
+
     @Builder.Default
     private Integer usedCount = 0;
 
