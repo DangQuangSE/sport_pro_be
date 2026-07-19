@@ -19,6 +19,8 @@ public class CustomDesignResponse {
     private Integer numTextLines;
     private Integer numImages;
     private BigDecimal totalPrintingPrice;
+    private BigDecimal materialBasePrice;
+    private BigDecimal logoUnitPrice;
     private LocalDateTime createdAt;
 }
 
