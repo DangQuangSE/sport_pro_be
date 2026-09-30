@@ -156,6 +156,8 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment:
+      name: production
 
     steps:
       - name: Load Oracle SSH key
