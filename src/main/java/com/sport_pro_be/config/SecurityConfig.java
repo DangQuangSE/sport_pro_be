@@ -51,7 +51,8 @@ public class SecurityConfig {
                         "/api/colors/**",
                         "/api/products/**",
                         "/api/public-configs/**",
-                        "/api/public/**"
+                        "/api/public/**",
+                        "/api/v1/payments/payos/webhook"
         };
 
         private static final String[] ADMIN_URLS = {

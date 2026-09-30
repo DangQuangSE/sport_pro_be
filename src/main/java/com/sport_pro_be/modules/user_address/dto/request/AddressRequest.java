@@ -3,7 +3,6 @@ package com.sport_pro_be.modules.user_address.dto.request;
 import com.sport_pro_be.modules.user_address.constant.AddressMessageConstant;
 import com.sport_pro_be.modules.user_address.enums.AddressType;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
@@ -34,6 +33,5 @@ public class AddressRequest {
     @Builder.Default
     private Boolean isDefault = false;
 
-    @NotNull(message = AddressMessageConstant.ADDRESS_TYPE_REQUIRED)
     private AddressType type;
 }

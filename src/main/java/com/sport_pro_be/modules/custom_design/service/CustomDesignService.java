@@ -11,10 +11,9 @@ import com.sport_pro_be.modules.custom_design.dto.CustomDesignResponse;
 import com.sport_pro_be.modules.custom_design.interfaces.ICustomDesignService;
 import com.sport_pro_be.modules.custom_design.repository.CustomDesignRepository;
 import com.sport_pro_be.modules.printing.domain.PrintingMaterial;
-import com.sport_pro_be.modules.printing.domain.PrintingPriceConfig;
 import com.sport_pro_be.modules.printing.enums.PrintingElementType;
+import com.sport_pro_be.modules.printing.interfaces.IPrintingPriceConfigService;
 import com.sport_pro_be.modules.printing.repository.PrintingMaterialRepository;
-import com.sport_pro_be.modules.printing.repository.PrintingPriceConfigRepository;
 import com.sport_pro_be.modules.upload.interfaces.IUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +33,7 @@ public class CustomDesignService implements ICustomDesignService {
 
     private final CustomDesignRepository customDesignRepository;
     private final PrintingMaterialRepository materialRepository;
-    private final PrintingPriceConfigRepository priceConfigRepository;
+    private final IPrintingPriceConfigService printingPriceConfigService;
     private final UserRepository userRepository;
     private final IUploadService uploadService;
 
@@ -138,26 +137,14 @@ public class CustomDesignService implements ICustomDesignService {
 
     /**
      * Formula:
-     * totalPrintingPrice = material.basePrice
-     *                    + (numTextLines × PriceConfig[TEXT].unitPrice)
-     *                    + (numImages    × PriceConfig[IMAGE].unitPrice)
+     * totalPrintingPrice = (material.basePrice × numTextLines)
+     *                    + (numImages × PriceConfig[IMAGE].unitPrice)
      */
     private BigDecimal calculatePrintingPrice(PrintingMaterial material, int numTextLines, int numImages) {
-        BigDecimal textUnitPrice = getUnitPrice(PrintingElementType.TEXT);
-        BigDecimal imageUnitPrice = getUnitPrice(PrintingElementType.IMAGE);
+        BigDecimal imageUnitPrice = printingPriceConfigService.getUnitPrice(PrintingElementType.IMAGE);
 
-        return material.getBasePrice()
-                .add(textUnitPrice.multiply(BigDecimal.valueOf(numTextLines)))
+        return material.getBasePrice().multiply(BigDecimal.valueOf(numTextLines))
                 .add(imageUnitPrice.multiply(BigDecimal.valueOf(numImages)));
-    }
-
-    private BigDecimal getUnitPrice(PrintingElementType type) {
-        PrintingPriceConfig config = priceConfigRepository.findByType(type)
-                .orElseThrow(() -> new AppException(
-                        String.format(CustomDesignMessageConstant.PRICE_CONFIG_NOT_FOUND, type.name()),
-                        HttpStatus.INTERNAL_SERVER_ERROR
-                ));
-        return config.getUnitPrice();
     }
 
     private CustomDesignResponse mapToResponse(CustomDesign design) {
@@ -171,6 +158,8 @@ public class CustomDesignService implements ICustomDesignService {
                 .numTextLines(design.getNumTextLines())
                 .numImages(design.getNumImages())
                 .totalPrintingPrice(design.getTotalPrintingPrice())
+                .materialBasePrice(design.getPrintingMaterial().getBasePrice())
+                .logoUnitPrice(printingPriceConfigService.getUnitPrice(PrintingElementType.IMAGE))
                 .createdAt(design.getCreatedAt())
                 .build();
     }

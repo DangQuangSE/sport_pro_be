@@ -2,7 +2,9 @@ package com.sport_pro_be.modules.printing.interfaces;
 
 import com.sport_pro_be.modules.printing.domain.PrintingPriceConfig;
 import com.sport_pro_be.modules.printing.dto.PrintingDto;
+import com.sport_pro_be.modules.printing.enums.PrintingElementType;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface IPrintingPriceConfigService {
@@ -10,4 +12,5 @@ public interface IPrintingPriceConfigService {
     PrintingPriceConfig createPriceConfig(PrintingDto.PriceConfigRequest request);
     PrintingPriceConfig updatePriceConfig(Long id, PrintingDto.PriceConfigRequest request);
     void deletePriceConfig(Long id);
+    BigDecimal getUnitPrice(PrintingElementType type);
 }

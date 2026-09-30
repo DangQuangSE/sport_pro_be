@@ -15,5 +15,4 @@ public class AddressMessageConstant {
     public static final String DISTRICT_REQUIRED = "DISTRICT_IS_REQUIRED";
     public static final String WARD_REQUIRED = "WARD_IS_REQUIRED";
     public static final String DETAIL_ADDRESS_REQUIRED = "DETAIL_ADDRESS_IS_REQUIRED";
-    public static final String ADDRESS_TYPE_REQUIRED = "ADDRESS_TYPE_IS_REQUIRED";
 }

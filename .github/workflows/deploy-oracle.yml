@@ -1,0 +1,196 @@
+name: Deploy backend to Oracle VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-backend-production
+  cancel-in-progress: false
+
+env:
+  DEPLOY_PATH: /opt/sport-pro/backend
+  ARCHIVE_PATH: /tmp/sport-pro-backend.tgz
+  PUBLIC_API_URL: https://api.dongphucquangvinh.com/api
+
+jobs:
+  build:
+    name: Build backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Build application
+        run: |
+          chmod +x mvnw
+          ./mvnw -B -DskipTests package
+
+      - name: Create release archive
+        run: |
+          set -euo pipefail
+          tar \
+            --exclude='./.git' \
+            --exclude='./.env' \
+            --exclude='./.env.*' \
+            --exclude='./target' \
+            --exclude='./.codex' \
+            -czf /tmp/sport-pro-backend.tgz .
+          cp /tmp/sport-pro-backend.tgz sport-pro-backend.tgz
+
+      - name: Store release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sport-pro-backend
+          path: sport-pro-backend.tgz
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy:
+    name: Deploy to Oracle VPS
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production
+
+    steps:
+      - name: Download release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sport-pro-backend
+
+      - name: Check release artifact
+        run: test -s sport-pro-backend.tgz
+
+      - name: Load Oracle SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.ORACLE_SSH_PRIVATE_KEY }}
+
+      - name: Configure SSH host key
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -p 22 -H "$ORACLE_HOST" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload release archive
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+        run: |
+          set -euo pipefail
+          cat sport-pro-backend.tgz | ssh -p 22 "$ORACLE_USER@$ORACLE_HOST" \
+              "cat > '$ARCHIVE_PATH'"
+
+      - name: Rebuild and restart Oracle stack
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          ssh -p 22 "$ORACLE_USER@$ORACLE_HOST" "RELEASE_SHA='$RELEASE_SHA' DEPLOY_PATH='$DEPLOY_PATH' ARCHIVE_PATH='$ARCHIVE_PATH' bash -s" <<'REMOTE_SCRIPT'
+          set -euo pipefail
+
+          current="${DEPLOY_PATH:?DEPLOY_PATH is required}"
+          release="${DEPLOY_PATH}.release"
+          archive="${ARCHIVE_PATH:?ARCHIVE_PATH is required}"
+
+          test -s "$current/.env.production"
+          rm -rf "$release"
+          mkdir -p "$release"
+          tar -xzf "$archive" -C "$release"
+          cp "$current/.env.production" "$release/.env.production"
+          chmod 600 "$release/.env.production"
+
+          compose=(docker compose --env-file "$release/.env.production" -f "$release/compose.oracle.yaml")
+          "${compose[@]}" config --quiet
+          "${compose[@]}" up -d --build --remove-orphans
+
+          healthy=false
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:8080/api/categories >/dev/null; then
+              healthy=true
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$healthy" != true ]; then
+            "${compose[@]}" ps
+            rollback_compose=(docker compose --env-file "$current/.env.production" -f "$current/compose.oracle.yaml")
+            "${rollback_compose[@]}" up -d --build --remove-orphans || true
+            rm -rf "$release" "$archive"
+            echo 'Backend health check failed.' >&2
+            exit 1
+          fi
+
+          rm -rf "$current.previous"
+          mv "$current" "$current.previous"
+          mv "$release" "$current"
+          rm -rf "$current.previous" "$archive"
+          echo "Oracle backend deployed: $RELEASE_SHA"
+          REMOTE_SCRIPT
+
+  verify-vps:
+    name: Verify API on Oracle VPS
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Load Oracle SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.ORACLE_SSH_PRIVATE_KEY }}
+
+      - name: Configure SSH host key
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -p 22 -H "$ORACLE_HOST" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Verify local API
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+        run: |
+          set -euo pipefail
+          ssh -p 22 "$ORACLE_USER@$ORACLE_HOST" \
+            "curl --fail --silent --show-error http://127.0.0.1:8080/api/categories >/dev/null"
+
+  verify-public:
+    name: Verify public API through Cloudflare
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Verify public API
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 10 --retry-delay 3 \
+            "$PUBLIC_API_URL/categories" >/dev/null

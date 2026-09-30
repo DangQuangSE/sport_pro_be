@@ -5,19 +5,28 @@ import com.sport_pro_be.modules.coupon.constant.CouponMessageConstant;
 import com.sport_pro_be.modules.coupon.domain.Coupon;
 import com.sport_pro_be.modules.coupon.interfaces.ICouponService;
 import com.sport_pro_be.modules.coupon.repository.CouponRepository;
+import com.sport_pro_be.modules.order.enums.OrderStatus;
+import com.sport_pro_be.modules.order.repository.OrderRepository;
 import com.sport_pro_be.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CouponService implements ICouponService {
 
+    private static final List<OrderStatus> USAGE_EXCLUDED_STATUSES =
+            List.of(OrderStatus.CANCELLED, OrderStatus.RETURNED, OrderStatus.REFUNDED);
+
     private final CouponRepository couponRepository;
+    private final OrderRepository orderRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -47,6 +56,20 @@ public class CouponService implements ICouponService {
             }
         }
 
+        if (coupon.getMaxUsagePerUser() != null) {
+            long userUsageCount = orderRepository.countByUserIdAndCouponIdAndStatusNotIn(
+                    user.getId(), coupon.getId(), USAGE_EXCLUDED_STATUSES);
+            if (userUsageCount >= coupon.getMaxUsagePerUser()) {
+                // Per-user check is a plain SELECT COUNT, not atomic like the global usedCount
+                // increment - two concurrent requests from the same user could both pass this
+                // check in a rare race. Accepted as low-risk debt; this log line gives forensic
+                // visibility if abuse is ever suspected.
+                log.info("Coupon {} rejected for user {}: per-user usage limit reached ({}/{})",
+                        coupon.getCode(), user.getId(), userUsageCount, coupon.getMaxUsagePerUser());
+                throw new BadRequestException(CouponMessageConstant.USER_USAGE_LIMIT_REACHED);
+            }
+        }
+
         return coupon;
     }
 
@@ -70,7 +93,13 @@ public class CouponService implements ICouponService {
         if (discount.compareTo(orderAmount) > 0) {
             discount = orderAmount;
         }
-        
+
         return discount;
+    }
+
+    @Override
+    @Transactional
+    public boolean incrementUsage(Long couponId) {
+        return couponRepository.incrementUsageIfBelowLimit(couponId) > 0;
     }
 }

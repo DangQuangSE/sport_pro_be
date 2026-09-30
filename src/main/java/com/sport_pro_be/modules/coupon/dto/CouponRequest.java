@@ -18,5 +18,6 @@ public class CouponRequest {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Integer usageLimit;
+    private Integer maxUsagePerUser;
     private boolean isActive = true;
 }
