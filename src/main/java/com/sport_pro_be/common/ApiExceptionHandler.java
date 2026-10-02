@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +42,13 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleConstraintViolation(ConstraintViolationException ex) {
         return ResponseEntity.badRequest()
                 .body(new ApiResponse<>(ex.getMessage(), null, Instant.now()));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+        log.warn("Multipart upload exceeded the configured size limit: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(new ApiResponse<>("File size too large. Maximum allowed size is 5MB", null, Instant.now()));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
