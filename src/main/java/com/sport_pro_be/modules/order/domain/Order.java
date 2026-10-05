@@ -57,6 +57,14 @@ public class Order extends AbstractAuditingEntity {
     @Column(name = "discount_amount", precision = 15, scale = 2)
     private BigDecimal discountAmount = BigDecimal.ZERO;
 
+    /**
+     * Prevents a successful payment and a later delivery transition from
+     * crediting the same order twice.
+     */
+    @Column(name = "loyalty_credited", nullable = false)
+    @Builder.Default
+    private boolean loyaltyCredited = false;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();

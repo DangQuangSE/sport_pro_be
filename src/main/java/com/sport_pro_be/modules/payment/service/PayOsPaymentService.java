@@ -6,6 +6,7 @@ import com.sport_pro_be.modules.order.domain.Order;
 import com.sport_pro_be.modules.order.enums.OrderStatus;
 import com.sport_pro_be.modules.order.enums.PaymentMethod;
 import com.sport_pro_be.modules.order.repository.OrderRepository;
+import com.sport_pro_be.modules.membership.interfaces.ITierService;
 import com.sport_pro_be.modules.payment.constant.PaymentMessageConstant;
 import com.sport_pro_be.modules.payment.dto.PayOsPaymentResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.math.RoundingMode;
 public class PayOsPaymentService {
 
     private final OrderRepository orderRepository;
+    private final ITierService tierService;
 
     @Value("${PAYOS_CLIENT_ID:}")
     private String clientId;
@@ -117,13 +119,25 @@ public class PayOsPaymentService {
             throw new BadRequestException(PaymentMessageConstant.INVALID_PAYMENT_AMOUNT);
         }
 
-        // Webhooks are retried by payOS. The state transition is idempotent and
-        // terminal order states are never moved backwards.
+        // Webhooks are retried by payOS. The state transition and loyalty credit
+        // are idempotent, so a retry cannot double-count this order.
+        if (order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.REFUNDED) {
+            log.warn("Ignoring PayOS webhook for closed order {} with status {}", order.getId(), order.getStatus());
+            return;
+        }
+
         if (order.getStatus() == OrderStatus.PENDING) {
             order.setStatus(OrderStatus.CONFIRMED);
-            orderRepository.save(order);
-            log.info("Order {} marked CONFIRMED from PayOS webhook", order.getId());
         }
+
+        if (!order.isLoyaltyCredited()) {
+            tierService.creditSpending(order.getUser(), order.getTotalAmount());
+            order.setLoyaltyCredited(true);
+        }
+
+        orderRepository.save(order);
+        log.info("Order {} marked {} from PayOS webhook and loyalty credit applied: {}",
+                order.getId(), order.getStatus(), order.isLoyaltyCredited());
     }
 
     private PayOsPaymentResponse toResponse(CreatePaymentLinkResponse paymentLink) {

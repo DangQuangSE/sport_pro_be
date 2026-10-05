@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -27,5 +28,19 @@ public class TierService implements ITierService {
                 break;
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public void creditSpending(User user, BigDecimal amount) {
+        if (amount == null || amount.signum() < 0) {
+            throw new IllegalArgumentException("Spending amount must be non-negative");
+        }
+
+        BigDecimal currentSpending = user.getTotalSpending() == null
+                ? BigDecimal.ZERO
+                : user.getTotalSpending();
+        user.setTotalSpending(currentSpending.add(amount));
+        updateUserTier(user);
     }
 }
