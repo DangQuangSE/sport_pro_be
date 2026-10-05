@@ -191,11 +191,13 @@ public class OrderService implements IOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(OrderMessageConstant.ORDER_NOT_FOUND));
 
-        if (status == OrderStatus.DELIVERED && order.getStatus() != OrderStatus.DELIVERED) {
+        if (status == OrderStatus.DELIVERED
+                && order.getStatus() != OrderStatus.DELIVERED
+                && !order.isLoyaltyCredited()) {
             User user = order.getUser();
-            user.setTotalSpending(user.getTotalSpending().add(order.getTotalAmount()));
-            tierService.updateUserTier(user);
+            tierService.creditSpending(user, order.getTotalAmount());
             userRepository.save(user);
+            order.setLoyaltyCredited(true);
         }
 
         order.setStatus(status);
