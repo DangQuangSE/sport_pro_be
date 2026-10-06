@@ -8,6 +8,7 @@ import com.sport_pro_be.modules.auth.enums.Role;
 import com.sport_pro_be.modules.auth.interfaces.IProfileService;
 import com.sport_pro_be.modules.auth.repository.UserRepository;
 import com.sport_pro_be.modules.upload.service.CloudinaryUploadService;
+import com.sport_pro_be.modules.membership.interfaces.ITierService;
 import com.sport_pro_be.modules.audit.annotation.Loggable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,12 +23,14 @@ public class ProfileService implements IProfileService {
 
     private final UserRepository userRepository;
     private final CloudinaryUploadService uploadService;
+    private final ITierService tierService;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public UserProfileResponse getProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        tierService.resolveCurrentTier(user);
         return mapToResponse(user);
     }
 
@@ -60,7 +63,7 @@ public class ProfileService implements IProfileService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public java.util.List<UserProfileResponse> getAllProfiles() {
         return userRepository.findAll().stream()
                 .map(this::mapToResponse)
@@ -98,6 +101,7 @@ public class ProfileService implements IProfileService {
     }
 
     private UserProfileResponse mapToResponse(User user) {
+        var currentTier = tierService.resolveCurrentTier(user);
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -105,9 +109,10 @@ public class ProfileService implements IProfileService {
                 .lastName(user.getLastName())
                 .avatar(user.getAvatar())
                 .role(user.getRole().name())
-                .tier(user.getTier().name())
+                .tier(currentTier.getCode())
                 .totalSpending(user.getTotalSpending())
                 .isActive(user.isActive())
+                .membership(tierService.getMembershipProfile(user))
                 .build();
     }
 }

@@ -7,6 +7,7 @@ import com.sport_pro_be.modules.auth.dto.OtpVerifyRequest;
 import com.sport_pro_be.modules.auth.dto.RegisterRequest;
 import com.sport_pro_be.modules.auth.dto.ResendOtpRequest;
 import com.sport_pro_be.modules.auth.domain.User;
+import com.sport_pro_be.modules.membership.interfaces.ITierService;
 import com.sport_pro_be.modules.auth.interfaces.IAuthService;
 import com.sport_pro_be.common.ApiResponse;
 import com.sport_pro_be.common.annotation.RateLimit;
@@ -32,6 +33,7 @@ public class AuthController {
 
     private final IAuthService authService;
     private final AuthProperties authProperties;
+    private final ITierService tierService;
 
     @PostMapping("/register/request-otp")
     @RateLimit(requests = 3, periodInSeconds = 60)
@@ -87,10 +89,11 @@ public class AuthController {
     @GetMapping("/me")
     public ApiResponse<Map<String, Object>> me() {
         User user = com.sport_pro_be.common.SecurityUtils.getCurrentUser();
+        String tierCode = tierService.resolveCurrentTier(user).getCode();
         Map<String, Object> data = Map.of(
                 "email", user.getEmail(),
                 "role", user.getRole().name(),
-                "tier", user.getTier().name(),
+                "tier", tierCode,
                 "totalSpending", user.getTotalSpending()
         );
         return ApiResponse.of(USER_DETAILS_RETRIEVED, data);

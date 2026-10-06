@@ -1,6 +1,7 @@
 package com.sport_pro_be.modules.auth.dto;
 
 import lombok.Builder;
+import com.sport_pro_be.modules.membership.dto.MembershipProfileResponse;
 import java.math.BigDecimal;
 
 @Builder
@@ -13,5 +14,6 @@ public record UserProfileResponse(
     String role,
     String tier,
     BigDecimal totalSpending,
-    boolean isActive
+    boolean isActive,
+    MembershipProfileResponse membership
 ) {}

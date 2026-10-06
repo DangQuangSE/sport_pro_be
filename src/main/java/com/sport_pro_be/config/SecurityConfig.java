@@ -52,6 +52,7 @@ public class SecurityConfig {
                         "/api/products/**",
                         "/api/public-configs/**",
                         "/api/public/**",
+                        "/api/v1/membership/tiers",
                         "/api/v1/payments/payos/webhook"
         };
 

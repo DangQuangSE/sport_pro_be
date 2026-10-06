@@ -7,4 +7,5 @@ import java.math.BigDecimal;
 public class TierConfigRequest {
     private BigDecimal threshold;
     private String description;
+    private Long expectedVersion;
 }
