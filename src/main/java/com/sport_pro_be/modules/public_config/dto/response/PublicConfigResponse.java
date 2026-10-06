@@ -1,6 +1,7 @@
 package com.sport_pro_be.modules.public_config.dto.response;
 
 import com.sport_pro_be.modules.public_config.domain.ConfigType;
+import com.sport_pro_be.modules.public_config.domain.SettingScope;
 import lombok.*;
 import java.time.LocalDateTime;
 
@@ -17,4 +18,11 @@ public class PublicConfigResponse {
     private String description;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String category;
+    private String unit;
+    private SettingScope scope;
+    private boolean active;
+    private String validationRules;
+    private Long version;
+    private Long updatedBy;
 }

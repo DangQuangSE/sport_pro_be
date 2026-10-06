@@ -1,6 +1,7 @@
 package com.sport_pro_be.modules.public_config.dto.request;
 
 import com.sport_pro_be.modules.public_config.domain.ConfigType;
+import com.sport_pro_be.modules.public_config.domain.SettingScope;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -21,4 +22,14 @@ public class PublicConfigRequest {
     private ConfigType configType;
 
     private String description;
+
+    private String category;
+
+    private String unit;
+
+    private SettingScope scope;
+
+    private Boolean active;
+
+    private String validationRules;
 }
