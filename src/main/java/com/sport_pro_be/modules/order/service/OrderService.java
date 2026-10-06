@@ -16,9 +16,13 @@ import com.sport_pro_be.modules.order.dto.OrderItemResponse;
 import com.sport_pro_be.modules.order.dto.OrderRequest;
 import com.sport_pro_be.modules.order.dto.OrderResponse;
 import com.sport_pro_be.modules.order.enums.OrderStatus;
+import com.sport_pro_be.modules.order.enums.PricingSnapshotStatus;
 import com.sport_pro_be.modules.order.interfaces.IOrderService;
 import com.sport_pro_be.modules.order.repository.OrderItemRepository;
 import com.sport_pro_be.modules.order.repository.OrderRepository;
+import com.sport_pro_be.modules.pricing.service.PricingCalculation;
+import com.sport_pro_be.modules.pricing.service.PricingLine;
+import com.sport_pro_be.modules.pricing.service.PricingService;
 import com.sport_pro_be.modules.product.domain.ProductVariant;
 import com.sport_pro_be.modules.product.domain.ProductImage;
 import com.sport_pro_be.modules.product.repository.ProductVariantRepository;
@@ -46,6 +50,7 @@ public class OrderService implements IOrderService {
     private final ProductVariantRepository productVariantRepository;
     private final com.sport_pro_be.modules.coupon.interfaces.ICouponService couponService;
     private final com.sport_pro_be.modules.membership.interfaces.ITierService tierService;
+    private final PricingService pricingService;
     private final NotificationOutboxService notificationOutboxService;
 
     @Override
@@ -59,24 +64,12 @@ public class OrderService implements IOrderService {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new BadRequestException(OrderMessageConstant.CART_EMPTY));
 
-        if (cart.getItems() == null || cart.getItems().isEmpty()) {
-            throw new BadRequestException(OrderMessageConstant.CART_EMPTY);
-        }
-
-        List<CartItem> itemsToOrder;
-        if (request.getCartItemIds() != null && !request.getCartItemIds().isEmpty()) {
-            itemsToOrder = cart.getItems().stream()
-                    .filter(item -> request.getCartItemIds().contains(item.getId()))
-                    .collect(Collectors.toList());
-
-            if (itemsToOrder.isEmpty()) {
-                throw new BadRequestException(OrderMessageConstant.INVALID_SELECTED_ITEMS);
-            }
-        } else {
-            itemsToOrder = new ArrayList<>(cart.getItems());
-        }
-
-        BigDecimal totalAmount = BigDecimal.ZERO;
+        PricingCalculation calculation = pricingService.calculate(
+                user, request.getCartItemIds(), request.getCouponCode());
+        List<CartItem> itemsToOrder = calculation.lines().stream()
+                .map(PricingLine::cartItem)
+                .collect(Collectors.toCollection(ArrayList::new));
+        BigDecimal totalAmount = calculation.breakdown().totalAmount();
         List<OrderItem> orderItems = new ArrayList<>();
 
         Order order = Order.builder()
@@ -85,17 +78,36 @@ public class OrderService implements IOrderService {
                 .phoneNumber(request.getPhoneNumber())
                 .paymentMethod(request.getPaymentMethod())
                 .status(OrderStatus.PENDING)
-                .totalAmount(BigDecimal.ZERO)
-                .discountAmount(BigDecimal.ZERO)
+                .totalAmount(totalAmount)
+                .discountAmount(calculation.breakdown().tierDiscountAmount()
+                        .add(calculation.breakdown().couponDiscountAmount()))
+                .subtotalAmount(calculation.breakdown().subtotalAmount())
+                .printingAmount(calculation.breakdown().printingAmount())
+                .tierDiscountAmount(calculation.breakdown().tierDiscountAmount())
+                .couponDiscountAmount(calculation.breakdown().couponDiscountAmount())
+                .shippingAmount(calculation.breakdown().shippingAmount())
+                .taxAmount(calculation.breakdown().taxAmount())
+                .appliedTierCode(calculation.breakdown().appliedTierCode())
+                .pricingRuleVersions(calculation.breakdown().ruleVersions())
+                .pricingSnapshotStatus(PricingSnapshotStatus.COMPLETE)
                 .build();
+
+        if (calculation.coupon() != null) {
+            if (!couponService.incrementUsage(calculation.coupon().getId())) {
+                throw new BadRequestException(com.sport_pro_be.modules.coupon.constant.CouponMessageConstant.USAGE_LIMIT_REACHED);
+            }
+            order.setCoupon(calculation.coupon());
+        }
 
         // Must save order first to satisfy foreign key for OrderItem
         order = orderRepository.save(order);
 
-        for (CartItem cartItem : itemsToOrder) {
-            ProductVariant variant = cartItem.getProductVariant();
-
-            if (variant.getStockQuantity() < cartItem.getQuantity()) {
+        for (PricingLine line : calculation.lines()) {
+            CartItem cartItem = line.cartItem();
+            ProductVariant variant = productVariantRepository.findByIdForUpdate(cartItem.getProductVariant().getId())
+                    .orElseThrow(() -> new BadRequestException("Selected product variant is no longer available"));
+            if (variant.getStatus() == null || variant.getStockQuantity() == null
+                    || variant.getStockQuantity() < cartItem.getQuantity()) {
                 throw new BadRequestException(String.format(OrderMessageConstant.INSUFFICIENT_STOCK,
                         variant.getProduct().getName(), variant.getSize()));
             }
@@ -104,22 +116,13 @@ public class OrderService implements IOrderService {
             variant.setStockQuantity(variant.getStockQuantity() - cartItem.getQuantity());
             productVariantRepository.save(variant);
 
-            // Determine product price
-            BigDecimal itemPrice = variant.getSalePrice() != null ? variant.getSalePrice() : variant.getOriginalPrice();
-            BigDecimal itemTotal = itemPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity()));
-
-            // Add printing price if this item has a custom design (snapshot price stored in
-            // design)
-            if (cartItem.getCustomDesign() != null) {
-                itemTotal = itemTotal.add(cartItem.getCustomDesign().getTotalPrintingPrice());
-            }
-            totalAmount = totalAmount.add(itemTotal);
-
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .productVariant(variant)
                     .quantity(cartItem.getQuantity())
-                    .price(itemPrice)
+                    .price(line.unitPrice())
+                    .unitPrice(line.unitPrice())
+                    .printingAmount(line.printingAmount())
                     .customDesign(cartItem.getCustomDesign())
                     .build();
 
@@ -128,20 +131,6 @@ public class OrderService implements IOrderService {
 
         orderItemRepository.saveAll(orderItems);
 
-        // Handle Coupon
-        BigDecimal discountAmount = BigDecimal.ZERO;
-        if (request.getCouponCode() != null && !request.getCouponCode().isBlank()) {
-            com.sport_pro_be.modules.coupon.domain.Coupon coupon = couponService
-                    .validateAndGetCoupon(request.getCouponCode(), user, totalAmount);
-            discountAmount = couponService.calculateDiscount(coupon, totalAmount);
-            if (!couponService.incrementUsage(coupon.getId())) {
-                throw new BadRequestException(com.sport_pro_be.modules.coupon.constant.CouponMessageConstant.USAGE_LIMIT_REACHED);
-            }
-            order.setCoupon(coupon);
-        }
-
-        order.setDiscountAmount(discountAmount);
-        order.setTotalAmount(totalAmount.subtract(discountAmount));
         order.setItems(orderItems);
         orderRepository.save(order);
 
@@ -220,14 +209,19 @@ public class OrderService implements IOrderService {
                                     : item.getProductVariant().getColorOld())
                             .quantity(item.getQuantity())
                             .price(item.getPrice())
+                            .unitPrice(item.getUnitPrice() != null ? item.getUnitPrice() : item.getPrice())
                             .isReviewed(item.getReview() != null);
 
                     if (item.getCustomDesign() != null) {
                         builder.customDesignId(item.getCustomDesign().getId())
                                 .designImageUrl(item.getCustomDesign().getDesignImageUrl())
                                 .backDesignImageUrl(item.getCustomDesign().getBackDesignImageUrl())
-                                .printingPrice(item.getCustomDesign().getTotalPrintingPrice());
+                                .printingPrice(item.getCustomDesign().getTotalPrintingPrice())
+                                .printingAmount(item.getPrintingAmount() != null
+                                        ? item.getPrintingAmount()
+                                        : item.getCustomDesign().getTotalPrintingPrice());
                     } else {
+                        builder.printingAmount(item.getPrintingAmount());
                         String defaultImageUrl = item.getProductVariant().getProduct().getImages().stream()
                                 .filter(img -> Boolean.TRUE.equals(img.getIsThumbnail()))
                                 .map(ProductImage::getImageUrl)
@@ -247,6 +241,16 @@ public class OrderService implements IOrderService {
                 .shippingAddress(order.getShippingAddress())
                 .phoneNumber(order.getPhoneNumber())
                 .totalAmount(order.getTotalAmount())
+                .currency("VND")
+                .subtotalAmount(order.getSubtotalAmount())
+                .printingAmount(order.getPrintingAmount())
+                .tierDiscountAmount(order.getTierDiscountAmount())
+                .couponDiscountAmount(order.getCouponDiscountAmount())
+                .shippingAmount(order.getShippingAmount())
+                .taxAmount(order.getTaxAmount())
+                .appliedTierCode(order.getAppliedTierCode())
+                .pricingRuleVersions(order.getPricingRuleVersions())
+                .pricingSnapshotStatus(order.getPricingSnapshotStatus())
                 .status(order.getStatus())
                 .paymentMethod(order.getPaymentMethod())
                 .createdAt(order.getCreatedAt())

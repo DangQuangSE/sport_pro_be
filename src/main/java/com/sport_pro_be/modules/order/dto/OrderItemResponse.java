@@ -16,11 +16,13 @@ public class OrderItemResponse {
     private String color;
     private Integer quantity;
     private BigDecimal price;
+    private BigDecimal unitPrice;
     // Custom design info (null if no design attached)
     private Long customDesignId;
     private String designImageUrl;
     private String backDesignImageUrl;
     private BigDecimal printingPrice;
+    private BigDecimal printingAmount;
     private Boolean isReviewed;
 }
 
