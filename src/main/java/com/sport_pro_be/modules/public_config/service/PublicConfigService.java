@@ -57,6 +57,7 @@ public class PublicConfigService implements IPublicConfigService {
         return publicConfigRepository
                 .findAllByScopeAndActiveTrueOrderByCategoryAscConfigKeyAsc(SettingScope.PUBLIC)
                 .stream()
+                .filter(config -> settingDefinitionRegistry.isPublicContentKey(config.getConfigKey()))
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -76,6 +77,7 @@ public class PublicConfigService implements IPublicConfigService {
         return publicConfigRepository
                 .findAllByScopeAndActiveTrueOrderByCategoryAscConfigKeyAsc(SettingScope.PUBLIC)
                 .stream()
+                .filter(config -> settingDefinitionRegistry.isPublicContentKey(config.getConfigKey()))
                 .collect(Collectors.toMap(
                         PublicConfig::getConfigKey,
                         config -> config.getConfigValue() != null ? config.getConfigValue() : ""));
@@ -84,8 +86,12 @@ public class PublicConfigService implements IPublicConfigService {
     @Override
     @Transactional(readOnly = true)
     public PublicConfigResponse getConfigByKey(String key) {
+        String normalizedKey = normalizeKey(key);
+        if (!settingDefinitionRegistry.isPublicContentKey(normalizedKey)) {
+            throw new ResourceNotFoundException(PublicConfigMessageConstant.CONFIG_NOT_FOUND + ": " + key);
+        }
         PublicConfig config = publicConfigRepository
-                .findByConfigKeyAndScopeAndActiveTrue(normalizeKey(key), SettingScope.PUBLIC)
+                .findByConfigKeyAndScopeAndActiveTrue(normalizedKey, SettingScope.PUBLIC)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         PublicConfigMessageConstant.CONFIG_NOT_FOUND + ": " + key));
         return mapToResponse(config);

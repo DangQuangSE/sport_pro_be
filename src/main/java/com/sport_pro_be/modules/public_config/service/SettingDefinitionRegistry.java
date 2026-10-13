@@ -13,6 +13,38 @@ public class SettingDefinitionRegistry {
 
     public static final String PUBLIC_ZALO_LINK = "zalo_link";
 
+    /**
+     * Explicit anonymous-content contract. Locale-specific values use the
+     * suffix `.vi` or `.en`; keeping the list closed prevents an internal
+     * setting from becoming public just because a row exists.
+     */
+    private static final Set<String> PUBLIC_CONTENT_KEYS = Set.of(
+            "zalo_link",
+            "contact.phone",
+            "contact.email",
+            "contact.address",
+            "footer.description",
+            "footer.description.vi",
+            "footer.description.en",
+            "footer.contact_url",
+            "footer.returns_url",
+            "footer.tracking_url",
+            "footer.size_guide_url",
+            "footer.faq_url",
+            "footer.facebook_url",
+            "footer.instagram_url",
+            "seo.home.title.vi",
+            "seo.home.title.en",
+            "seo.home.description.vi",
+            "seo.home.description.en",
+            "seo.products.title.vi",
+            "seo.products.title.en",
+            "seo.products.description.vi",
+            "seo.products.description.en",
+            "banner.home.image_url",
+            "banner.home.link"
+    );
+
     private final Map<String, SettingDefinition> definitions = Map.of(
             "checkout.shipping.standard_fee", number("checkout.shipping.standard_fee", "VND", BigDecimal.ZERO, null, true, true, Set.of()),
             "checkout.shipping.free_threshold", number("checkout.shipping.free_threshold", "VND", BigDecimal.ZERO, null, true, true, Set.of()),
@@ -59,7 +91,7 @@ public class SettingDefinitionRegistry {
     }
 
     public boolean isPublicContentKey(String key) {
-        return PUBLIC_ZALO_LINK.equals(normalize(key));
+        return PUBLIC_CONTENT_KEYS.contains(normalize(key));
     }
 
     private String normalize(String key) {

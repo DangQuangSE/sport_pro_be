@@ -49,13 +49,23 @@ class PublicConfigServiceTest {
 
     @Test
     void publicReadsReturnOnlyActivePublicSettings() {
-        PublicConfig config = config("contact.zalo", "https://zalo.me/example", SettingScope.PUBLIC, true);
+        PublicConfig config = config("zalo_link", "https://zalo.me/example", SettingScope.PUBLIC, true);
         when(publicConfigRepository.findAllByScopeAndActiveTrueOrderByCategoryAscConfigKeyAsc(SettingScope.PUBLIC))
                 .thenReturn(List.of(config));
 
         assertEquals(1, service.getAllConfigs().size());
         verify(publicConfigRepository)
                 .findAllByScopeAndActiveTrueOrderByCategoryAscConfigKeyAsc(SettingScope.PUBLIC);
+    }
+
+    @Test
+    void publicReadsApplyAllowlistEvenIfAnUnknownRowIsMarkedPublic() {
+        PublicConfig internalRow = config("operational.note", "must stay private", SettingScope.PUBLIC, true);
+        when(publicConfigRepository.findAllByScopeAndActiveTrueOrderByCategoryAscConfigKeyAsc(SettingScope.PUBLIC))
+                .thenReturn(List.of(internalRow));
+
+        assertTrue(service.getAllConfigs().isEmpty());
+        assertTrue(service.getConfigsAsMap().isEmpty());
     }
 
     @Test
@@ -108,9 +118,6 @@ class PublicConfigServiceTest {
 
     @Test
     void publicLookupDoesNotExposeInternalSetting() {
-        when(publicConfigRepository.findByConfigKeyAndScopeAndActiveTrue("checkout.tax.rate", SettingScope.PUBLIC))
-                .thenReturn(Optional.empty());
-
         assertThrows(ResourceNotFoundException.class, () -> service.getConfigByKey("checkout.tax.rate"));
     }
 
@@ -136,6 +143,22 @@ class PublicConfigServiceTest {
                 .build();
 
         assertThrows(BadRequestException.class, () -> service.createConfig(request));
+    }
+
+    @Test
+    void approvedLocalizedContentCanBePublic() {
+        PublicConfigRequest request = PublicConfigRequest.builder()
+                .configKey("footer.description.vi")
+                .configValue("Nội dung chân trang")
+                .configType(ConfigType.TEXT)
+                .scope(SettingScope.PUBLIC)
+                .active(true)
+                .build();
+        PublicConfig saved = config("footer.description.vi", "Nội dung chân trang", SettingScope.PUBLIC, true);
+        when(publicConfigRepository.saveAndFlush(any(PublicConfig.class))).thenReturn(saved);
+
+        assertEquals("footer.description.vi", service.createConfig(request).getConfigKey());
+        verify(publicConfigRepository).saveAndFlush(any(PublicConfig.class));
     }
 
     @Test
