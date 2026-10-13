@@ -7,6 +7,7 @@ import com.sport_pro_be.modules.public_config.dto.request.PublicConfigUpdateRequ
 import com.sport_pro_be.modules.public_config.dto.response.PublicConfigResponse;
 import com.sport_pro_be.modules.public_config.interfaces.IPublicConfigService;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.RequestParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,12 +29,12 @@ public class AdminPublicConfigController {
     public ApiResponse<PublicConfigResponse> updateConfig(
             @PathVariable String key, 
             @Valid @RequestBody PublicConfigUpdateRequest request) {
-        return ApiResponse.of(PublicConfigMessageConstant.CONFIG_UPDATED, publicConfigService.updateConfig(key, request));
+        return ApiResponse.of(PublicConfigMessageConstant.CONFIG_UPDATED, publicConfigService.updateSetting(key, request));
     }
 
     @DeleteMapping("/{key}")
-    public ApiResponse<Void> deleteConfig(@PathVariable String key) {
-        publicConfigService.deleteConfig(key);
+    public ApiResponse<Void> deleteConfig(@PathVariable String key, @RequestParam Long expectedVersion) {
+        publicConfigService.deleteConfig(key, expectedVersion);
         return ApiResponse.of(PublicConfigMessageConstant.CONFIG_DELETED, null);
     }
 }

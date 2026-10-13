@@ -35,8 +35,9 @@ build/
 .env.production
 *.pem
 
-# Local Docs
-docs/
+# Local Docs (keep the public compatibility note tracked; other local docs stay ignored)
+docs/*
+!docs/public-config-compatibility.md
 
 .claude/
 .codex/

@@ -5,6 +5,7 @@ import com.sport_pro_be.exception.ResourceNotFoundException;
 import com.sport_pro_be.modules.order.domain.Order;
 import com.sport_pro_be.modules.order.enums.OrderStatus;
 import com.sport_pro_be.modules.order.enums.PaymentMethod;
+import com.sport_pro_be.modules.order.enums.PricingSnapshotStatus;
 import com.sport_pro_be.modules.order.repository.OrderRepository;
 import com.sport_pro_be.modules.membership.interfaces.ITierService;
 import com.sport_pro_be.modules.payment.constant.PaymentMessageConstant;
@@ -56,6 +57,9 @@ public class PayOsPaymentService {
         }
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new BadRequestException(PaymentMessageConstant.INVALID_PAYMENT_STATUS);
+        }
+        if (order.getPricingSnapshotStatus() != PricingSnapshotStatus.COMPLETE) {
+            throw new BadRequestException("Payment requires a complete pricing snapshot");
         }
 
         long amount = toPayOsAmount(order.getTotalAmount());

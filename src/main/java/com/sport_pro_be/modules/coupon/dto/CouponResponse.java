@@ -18,6 +18,7 @@ public class CouponResponse {
     private BigDecimal minOrderAmount;
     private BigDecimal maxDiscountAmount;
     private UserTier requiredTier;
+    private String requiredTierCode;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Integer usageLimit;

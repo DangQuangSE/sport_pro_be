@@ -9,9 +9,13 @@ import java.util.Map;
 
 public interface IPublicConfigService {
     List<PublicConfigResponse> getAllConfigs();
+    List<PublicConfigResponse> getAdminConfigs();
     Map<String, String> getConfigsAsMap();
     PublicConfigResponse getConfigByKey(String key);
     PublicConfigResponse createConfig(PublicConfigRequest request);
     PublicConfigResponse updateConfig(String key, PublicConfigUpdateRequest request);
+    PublicConfigResponse updateSetting(String key, PublicConfigUpdateRequest request);
+    void setActive(String key, boolean active, Long expectedVersion);
     void deleteConfig(String key);
+    void deleteConfig(String key, Long expectedVersion);
 }

@@ -11,6 +11,12 @@ import java.math.BigDecimal;
 public class TierConfigResponse {
     private Long id;
     private UserTier tier;
+    private String code;
     private BigDecimal threshold;
     private String description;
+    private Integer sortOrder;
+    private BigDecimal discountPercentage;
+    private boolean freeShipping;
+    private boolean active;
+    private Long version;
 }

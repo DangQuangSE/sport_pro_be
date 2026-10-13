@@ -8,6 +8,9 @@ import com.sport_pro_be.modules.coupon.interfaces.IAdminCouponService;
 import com.sport_pro_be.modules.coupon.repository.CouponRepository;
 import com.sport_pro_be.modules.order.enums.OrderStatus;
 import com.sport_pro_be.modules.order.repository.OrderRepository;
+import com.sport_pro_be.modules.auth.enums.UserTier;
+import com.sport_pro_be.modules.membership.domain.MembershipTier;
+import com.sport_pro_be.modules.membership.interfaces.ITierService;
 import com.sport_pro_be.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,10 +30,12 @@ public class AdminCouponService implements IAdminCouponService {
 
     private final CouponRepository couponRepository;
     private final OrderRepository orderRepository;
+    private final ITierService tierService;
 
     @Override
     @Transactional
     public CouponResponse createCoupon(CouponRequest request) {
+        MembershipTier requiredMembershipTier = resolveRequiredTier(request);
         Coupon coupon = Coupon.builder()
                 .code(request.getCode())
                 .discountType(request.getDiscountType())
@@ -38,6 +43,7 @@ public class AdminCouponService implements IAdminCouponService {
                 .minOrderAmount(request.getMinOrderAmount())
                 .maxDiscountAmount(request.getMaxDiscountAmount())
                 .requiredTier(request.getRequiredTier())
+                .requiredMembershipTier(requiredMembershipTier)
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .usageLimit(request.getUsageLimit())
@@ -67,6 +73,7 @@ public class AdminCouponService implements IAdminCouponService {
         coupon.setMinOrderAmount(request.getMinOrderAmount());
         coupon.setMaxDiscountAmount(request.getMaxDiscountAmount());
         coupon.setRequiredTier(request.getRequiredTier());
+        coupon.setRequiredMembershipTier(resolveRequiredTier(request));
         coupon.setStartDate(request.getStartDate());
         coupon.setEndDate(request.getEndDate());
         coupon.setUsageLimit(request.getUsageLimit());
@@ -96,6 +103,9 @@ public class AdminCouponService implements IAdminCouponService {
                 .minOrderAmount(coupon.getMinOrderAmount())
                 .maxDiscountAmount(coupon.getMaxDiscountAmount())
                 .requiredTier(coupon.getRequiredTier())
+                .requiredTierCode(coupon.getRequiredMembershipTier() != null
+                        ? coupon.getRequiredMembershipTier().getCode()
+                        : coupon.getRequiredTier() == null ? null : coupon.getRequiredTier().name())
                 .startDate(coupon.getStartDate())
                 .endDate(coupon.getEndDate())
                 .usageLimit(coupon.getUsageLimit())
@@ -105,5 +115,20 @@ public class AdminCouponService implements IAdminCouponService {
                         .sumDiscountAmountByCouponIdAndStatusNotIn(coupon.getId(), DISCOUNT_EXCLUDED_STATUSES))
                 .isActive(coupon.isActive())
                 .build();
+    }
+
+    private MembershipTier resolveRequiredTier(CouponRequest request) {
+        String code = request.getRequiredTierCode();
+        if ((code == null || code.isBlank()) && request.getRequiredTier() != null) {
+            code = request.getRequiredTier().name();
+        }
+        if (code == null || code.isBlank()) {
+            return null;
+        }
+        MembershipTier tier = tierService.getTierByCode(code);
+        if (!tier.isActive()) {
+            throw new com.sport_pro_be.exception.BadRequestException(CouponMessageConstant.TIER_NOT_REACHED);
+        }
+        return tier;
     }
 }

@@ -7,6 +7,8 @@ import com.sport_pro_be.modules.coupon.interfaces.ICouponService;
 import com.sport_pro_be.modules.coupon.repository.CouponRepository;
 import com.sport_pro_be.modules.order.enums.OrderStatus;
 import com.sport_pro_be.modules.order.repository.OrderRepository;
+import com.sport_pro_be.modules.membership.domain.MembershipTier;
+import com.sport_pro_be.modules.membership.interfaces.ITierService;
 import com.sport_pro_be.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,9 +29,10 @@ public class CouponService implements ICouponService {
 
     private final CouponRepository couponRepository;
     private final OrderRepository orderRepository;
+    private final ITierService tierService;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Coupon validateAndGetCoupon(String code, User user, BigDecimal orderAmount) {
         Coupon coupon = couponRepository.findByCodeAndIsActiveTrueAndIsDeletedFalse(code)
                 .orElseThrow(() -> new BadRequestException(CouponMessageConstant.INVALID_COUPON));
@@ -50,10 +53,12 @@ public class CouponService implements ICouponService {
             throw new BadRequestException(CouponMessageConstant.MIN_AMOUNT_NOT_REACHED);
         }
 
-        if (coupon.getRequiredTier() != null) {
-            if (user.getTier().ordinal() < coupon.getRequiredTier().ordinal()) {
-                throw new BadRequestException(String.format(CouponMessageConstant.TIER_NOT_REACHED, coupon.getRequiredTier()));
-            }
+        MembershipTier requiredTier = coupon.getRequiredMembershipTier();
+        if (requiredTier == null && coupon.getRequiredTier() != null) {
+            requiredTier = tierService.getTierByCode(coupon.getRequiredTier().name());
+        }
+        if (requiredTier != null && !tierService.isTierAtLeast(user, requiredTier)) {
+            throw new BadRequestException(String.format(CouponMessageConstant.TIER_NOT_REACHED, requiredTier.getCode()));
         }
 
         if (coupon.getMaxUsagePerUser() != null) {

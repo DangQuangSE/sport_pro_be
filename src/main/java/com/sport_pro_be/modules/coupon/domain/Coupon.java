@@ -2,6 +2,7 @@ package com.sport_pro_be.modules.coupon.domain;
 
 import com.sport_pro_be.common.AbstractAuditingEntity;
 import com.sport_pro_be.modules.auth.enums.UserTier;
+import com.sport_pro_be.modules.membership.domain.MembershipTier;
 import com.sport_pro_be.modules.coupon.enums.DiscountType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -41,6 +42,11 @@ public class Coupon extends AbstractAuditingEntity {
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private UserTier requiredTier;
+
+    /** Legacy enum is retained for rollback; new writes use this relation. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "required_tier_id")
+    private MembershipTier requiredMembershipTier;
 
     private LocalDateTime startDate;
     private LocalDateTime endDate;

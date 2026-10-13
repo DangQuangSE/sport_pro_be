@@ -36,6 +36,14 @@ public class OrderItem extends AbstractAuditingEntity {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal price;
 
+    /** Immutable unit-price snapshot used by historical order responses. */
+    @Column(name = "unit_price", precision = 15, scale = 2)
+    private BigDecimal unitPrice;
+
+    /** Immutable printing-price snapshot; nullable for non-customized lines. */
+    @Column(name = "printing_amount", precision = 15, scale = 2)
+    private BigDecimal printingAmount;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "custom_design_id")
     private com.sport_pro_be.modules.custom_design.domain.CustomDesign customDesign;

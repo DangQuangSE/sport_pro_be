@@ -8,6 +8,7 @@ import com.sport_pro_be.modules.auth.dto.LoginRequest;
 import com.sport_pro_be.modules.auth.dto.OtpVerifyRequest;
 import com.sport_pro_be.modules.auth.dto.RegisterRequest;
 import com.sport_pro_be.modules.auth.enums.OtpType;
+import com.sport_pro_be.modules.membership.interfaces.ITierService;
 import com.sport_pro_be.modules.auth.interfaces.IAuthService;
 import com.sport_pro_be.modules.auth.interfaces.IEmailService;
 import com.sport_pro_be.modules.auth.interfaces.IJwtService;
@@ -46,6 +47,7 @@ public class AuthService implements IAuthService {
     private final IEmailService emailService;
     private final IJwtService jwtService;
     private final AuthProperties authProperties;
+    private final ITierService tierService;
 
     @Override
     @Transactional
@@ -79,6 +81,7 @@ public class AuthService implements IAuthService {
         user.setEmail(normalizedEmail);
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setEmailVerified(true);
+        user.setMembershipTier(tierService.getTierByCode("BRONZE"));
         userRepository.save(user);
 
         latestOtp.setOtpVerified(false);
