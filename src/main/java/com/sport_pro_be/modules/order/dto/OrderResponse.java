@@ -19,6 +19,12 @@ public class OrderResponse {
     private String phoneNumber;
     private BigDecimal totalAmount;
     private String currency;
+    /**
+     * Historical aggregate discount. New orders also expose the typed tier
+     * and coupon components below; legacy orders must keep this value
+     * readable without reconstructing a current discount rule.
+     */
+    private BigDecimal discountAmount;
     private BigDecimal subtotalAmount;
     private BigDecimal printingAmount;
     private BigDecimal tierDiscountAmount;

@@ -242,6 +242,7 @@ public class OrderService implements IOrderService {
                 .phoneNumber(order.getPhoneNumber())
                 .totalAmount(order.getTotalAmount())
                 .currency("VND")
+                .discountAmount(order.getDiscountAmount())
                 .subtotalAmount(order.getSubtotalAmount())
                 .printingAmount(order.getPrintingAmount())
                 .tierDiscountAmount(order.getTierDiscountAmount())
